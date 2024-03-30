@@ -19,7 +19,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     Scaffold(
         bottomBar = {
-            BottomNavBar()
+            BottomNavBar(navController)
         },
         modifier = Modifier.fillMaxSize())
     {
