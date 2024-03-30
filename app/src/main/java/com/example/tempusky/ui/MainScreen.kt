@@ -3,6 +3,7 @@ package com.example.tempusky.ui
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -20,8 +21,7 @@ fun MainScreen() {
     Scaffold(
         bottomBar = {
             BottomNavBar(navController)
-        },
-        modifier = Modifier.fillMaxSize())
+        })
     {
         TempuskyNavHost(navController = navController)
     }

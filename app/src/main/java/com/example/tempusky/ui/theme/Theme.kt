@@ -10,22 +10,27 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
+    background = Color(0xFF292929),
     primary = Purple80,
-    secondary = PurpleGrey80,
+    secondary = PurpleGrey40,
     tertiary = Pink80,
+    onBackground = Color(0xFFFFFFFF),
+
 )
 
 private val LightColorScheme = lightColorScheme(
+    background = Color(0xFFFBFBFB),
     primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
+    secondary = PurpleGrey80,
+    tertiary = Pink40,
+    onBackground = Color(0xFF272727),
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
     surface = Color(0xFFFFFBFE),
@@ -45,11 +50,6 @@ fun TempuskyTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
