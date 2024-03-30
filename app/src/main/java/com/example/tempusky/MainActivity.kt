@@ -20,12 +20,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TempuskyTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainScreen()
-                }
+                MainScreen()
             }
         }
     }

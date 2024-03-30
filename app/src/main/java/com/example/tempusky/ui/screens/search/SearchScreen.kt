@@ -1,4 +1,4 @@
-package com.example.tempusky.ui.search
+package com.example.tempusky.ui.screens.search
 
 import androidx.compose.runtime.Composable
 
