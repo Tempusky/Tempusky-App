@@ -50,7 +50,7 @@ fun BottomNavBar(navController: NavController) {
         modifier = Modifier
             .background(MaterialTheme.colorScheme.secondary)
             .fillMaxWidth()
-            .height(62.dp),
+            .fillMaxHeight(0.07f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         navItems.forEach { route ->
