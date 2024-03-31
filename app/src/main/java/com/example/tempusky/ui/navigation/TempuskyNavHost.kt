@@ -30,7 +30,7 @@ fun TempuskyNavHost(navController: NavController) {
             SettingsScreen()
         }
         composable(NavigationRoutes.SIGNUP){
-            SignupScreen()
+            SignupScreen(navController = navController)
         }
         composable(NavigationRoutes.SEARCH){
             SearchScreen()
