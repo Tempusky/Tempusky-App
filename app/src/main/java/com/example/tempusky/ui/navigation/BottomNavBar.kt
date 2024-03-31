@@ -50,7 +50,7 @@ fun BottomNavBar(navController: NavController) {
         modifier = Modifier
             .background(MaterialTheme.colorScheme.secondary)
             .fillMaxWidth()
-            .height(72.dp),
+            .height(62.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         navItems.forEach { route ->
@@ -80,18 +80,23 @@ fun NavBarItem(
     val color = if (isSelected) MaterialTheme.colorScheme.onBackground else Color.Gray
     val iconSize = if (isSelected) 36.dp else 30.dp
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(modifier = Modifier.background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent).height(5.dp).fillMaxWidth())
-        Box(
-            modifier = Modifier
-                .clickable { onClick() }
-                .background(Color.Transparent)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = "",
-                tint = color,
-                modifier = Modifier.size(iconSize)
-            )
+        Spacer(modifier = Modifier
+            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+            .height(5.dp).weight(0.1f)
+            .fillMaxWidth())
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+            Box(
+                modifier = Modifier
+                    .clickable { onClick() }
+                    .background(Color.Transparent)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "",
+                    tint = color,
+                    modifier = Modifier.size(iconSize)
+                )
+            }
         }
     }
 

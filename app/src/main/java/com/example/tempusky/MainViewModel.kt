@@ -8,4 +8,8 @@ class MainViewModel : ViewModel() {
 
     private var _bottomBarVisibility = MutableLiveData(false)
     val bottomBarVisibility : LiveData<Boolean> = _bottomBarVisibility
+
+    fun setBottomBarVisible(v : Boolean){
+        _bottomBarVisibility.value = v
+    }
 }

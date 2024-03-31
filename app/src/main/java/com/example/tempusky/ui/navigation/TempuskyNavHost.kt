@@ -5,6 +5,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.tempusky.MainViewModel
 
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import com.example.tempusky.ui.screens.home.HomeScreen
@@ -15,10 +16,10 @@ import com.example.tempusky.ui.screens.settings.SettingsScreen
 import com.example.tempusky.ui.screens.signup.SignupScreen
 
 @Composable
-fun TempuskyNavHost(navController: NavController) {
+fun TempuskyNavHost(navController: NavController, mainViewModel:  MainViewModel) {
     NavHost(startDestination = NavigationRoutes.LOGIN, navController = navController as NavHostController) {
         composable(NavigationRoutes.LOGIN){
-            LoginScreen(navController = navController)
+            LoginScreen(navController = navController, mainViewModel = mainViewModel)
         }
         composable(NavigationRoutes.HOME){
             HomeScreen()

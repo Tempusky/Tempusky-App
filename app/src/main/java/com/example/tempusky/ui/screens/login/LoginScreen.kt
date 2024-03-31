@@ -16,12 +16,14 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,10 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.tempusky.MainViewModel
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(false) }
@@ -56,24 +60,54 @@ fun LoginScreen(navController: NavController) {
                 .fillMaxSize(), verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(text = "Login with your credentials:", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 OutlinedTextField(
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
+                        focusedPlaceholderColor = Color.LightGray
+                    ),
                     value = email,
-                    leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = "emailIcon") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = "emailIcon"
+                        )
+                    },
                     onValueChange = {
                         email = it
                         isButtonEnabled = email.isNotEmpty() && password.isNotEmpty()
                     },
-                    label = {"Email address" },
-                    placeholder = { "Enter your e-mail" },
+                    label = { Text("Email address") },
+                    placeholder = { Text(text = "Enter your e-mail") },
                 )
                 OutlinedTextField(
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
+                        focusedPlaceholderColor = Color.LightGray
+                    ),
                     value = password,
-                    leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = "passwordIcon") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "passwordIcon"
+                        )
+                    },
                     onValueChange = {
                         password = it
                         isButtonEnabled = email.isNotEmpty() && password.isNotEmpty()
                     },
-                    label = {"Password" },
-                    placeholder = { "Enter your password" },
+                    label = { Text(text = "Password") },
+                    placeholder = { Text(text = "Enter your password") },
                 )
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
@@ -89,7 +123,7 @@ fun LoginScreen(navController: NavController) {
                     }
 
                     Button(
-                        onClick = { navController.navigate(NavigationRoutes.HOME) },
+                        onClick = { navController.navigate(NavigationRoutes.HOME); mainViewModel.setBottomBarVisible(true) },
                         enabled = isButtonEnabled,
                         shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(
