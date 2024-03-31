@@ -18,7 +18,7 @@ import com.example.tempusky.ui.screens.signup.SignupScreen
 fun TempuskyNavHost(navController: NavController) {
     NavHost(startDestination = NavigationRoutes.LOGIN, navController = navController as NavHostController) {
         composable(NavigationRoutes.LOGIN){
-            LoginScreen()
+            LoginScreen(navController = navController)
         }
         composable(NavigationRoutes.HOME){
             HomeScreen()
