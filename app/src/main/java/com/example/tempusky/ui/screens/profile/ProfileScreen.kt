@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,16 +32,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.tempusky.R
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(navController: NavController) {
     Box(modifier = Modifier.fillMaxHeight(0.93f).fillMaxWidth()){
         Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween, horizontalAlignment = Alignment.CenterHorizontally) {
             Column(horizontalAlignment = Alignment.End, modifier = Modifier
                 .padding(10.dp)
                 .weight(1f)) {
-                Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings Icon", Modifier.size(30.dp))
+                IconButton(onClick = { navController.navigate("settings") }) {
+                    Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings Icon", Modifier.size(30.dp))
+                }
                 Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceAround) {
                     Image(painter = painterResource(id = R.drawable.pfp27), contentScale = ContentScale.Crop,
                         modifier = Modifier

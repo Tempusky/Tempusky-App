@@ -25,7 +25,7 @@ fun TempuskyNavHost(navController: NavController, mainViewModel:  MainViewModel)
             HomeScreen()
         }
         composable(NavigationRoutes.PROFILE){
-            ProfileScreen()
+            ProfileScreen(navController = navController)
         }
         composable(NavigationRoutes.SETTINGS){
             SettingsScreen()
