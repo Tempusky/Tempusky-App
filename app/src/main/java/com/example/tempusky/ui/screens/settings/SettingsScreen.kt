@@ -37,6 +37,7 @@ fun SettingsScreen() {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        Spacer(modifier = Modifier.height(48.dp))
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -47,7 +48,7 @@ fun SettingsScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Language")
+                Text("Language", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                 Spacer(modifier = Modifier.weight(1f))
                 LanguageSelector(
                     languages = SettingsValues.LANGUAGES,
@@ -64,7 +65,7 @@ fun SettingsScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Theme")
+                Text("Theme", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                 Spacer(modifier = Modifier.weight(1f))
                 ThemeSelector(
                     themes = SettingsValues.THEMES,
@@ -105,7 +106,7 @@ fun LanguageSelector(
                 )
                 Text(
                     text = language,
-                    modifier = Modifier.padding(start = 4.dp)
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
         }
@@ -137,7 +138,7 @@ fun ThemeSelector(
                 )
                 Text(
                     text = theme,
-                    modifier = Modifier.padding(start = 4.dp)
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }
         }
