@@ -8,7 +8,6 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.example.tempusky.data.SettingsDataStore
-import com.example.tempusky.data.SettingsHelper
 import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.ui.MainScreen
 import com.example.tempusky.ui.theme.TempuskyTheme
@@ -23,14 +22,10 @@ class MainActivity : ComponentActivity() {
         dataStore = SettingsDataStore(this)
 
         setContent {
-            LaunchedEffect(Unit)
-            {
-                SettingsHelper.setSettings(dataStore)
-            }
             val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")
             TempuskyTheme(savedTheme.value.equals("Dark")) {
-                MainScreen(this, mainViewModel, dataStore)
+                MainScreen(this, mainViewModel)
             }
         }
     }
