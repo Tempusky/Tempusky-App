@@ -4,27 +4,27 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
+import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.ui.MainScreen
 import com.example.tempusky.ui.theme.TempuskyTheme
 
 class MainActivity : ComponentActivity() {
 
-    val  mainViewModel : MainViewModel by viewModels()
+    val mainViewModel : MainViewModel by viewModels()
+    private lateinit var dataStore : SettingsDataStore
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        dataStore = SettingsDataStore(this)
 
         setContent {
             TempuskyTheme {
-                MainScreen(this, mainViewModel)
+                MainScreen(this, mainViewModel, dataStore)
             }
         }
+    }
+
+    companion object {
+        const val TAG = "MainActivity"
     }
 }

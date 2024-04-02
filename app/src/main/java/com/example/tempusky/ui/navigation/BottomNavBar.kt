@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -81,9 +82,9 @@ fun NavBarItem(
     val iconSize = if (isSelected) 36.dp else 30.dp
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier
-            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(5.dp))
             .height(5.dp).weight(0.1f)
-            .fillMaxWidth())
+            .fillMaxWidth(0.8f))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
             Box(
                 modifier = Modifier

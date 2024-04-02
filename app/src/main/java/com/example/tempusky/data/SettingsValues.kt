@@ -1,4 +1,4 @@
-package com.example.tempusky.storage
+package com.example.tempusky.data
 
 object SettingsValues {
     val LANGUAGES = listOf("English", "Spanish")

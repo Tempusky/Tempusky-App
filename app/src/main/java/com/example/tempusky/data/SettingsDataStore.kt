@@ -1,4 +1,4 @@
-package com.example.tempusky.storage
+package com.example.tempusky.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore

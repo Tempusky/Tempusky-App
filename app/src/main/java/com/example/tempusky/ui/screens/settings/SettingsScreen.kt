@@ -21,8 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.example.tempusky.storage.SettingsDataStore
-import com.example.tempusky.storage.SettingsValues
+import com.example.tempusky.data.SettingsDataStore
+import com.example.tempusky.data.SettingsValues
 import kotlinx.coroutines.launch
 
 @Composable
