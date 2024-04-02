@@ -33,9 +33,9 @@ fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel, dataStor
         bottombarVisible = it
     }
 
-    val _isLoading by remember{ mutableStateOf(true) }
+    var _isLoading by remember{ mutableStateOf(true) }
     mainViewModel.isLoading.observe(mainContext) {
-        mainViewModel.setLoading(it)
+        _isLoading = it
     }
 
     Scaffold(
@@ -45,23 +45,6 @@ fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel, dataStor
             }
         })
     {
-        if (!_isLoading)
-        {
-            TempuskyNavHost(navController = navController, mainViewModel)
-        }else{
-            LaunchedEffect(Unit){
-                SettingsHelper.setSettings(dataStore)
-                mainViewModel.setLoading(false)
-            }
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                Text(
-                    text = "Loading...",
-                    color = Color.Black
-                )
-            }
-        }
+        TempuskyNavHost(navController = navController, mainViewModel)
     }
 }
