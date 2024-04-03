@@ -83,7 +83,7 @@ fun NavBarItem(
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier
             .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(5.dp))
-            .height(5.dp).weight(0.1f)
+            .height(3.dp).weight(0.1f)
             .fillMaxWidth(0.8f))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
             Box(
