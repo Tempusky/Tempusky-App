@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")
-            TempuskyTheme(savedTheme.value.equals("Dark")) {
+            TempuskyTheme(savedTheme.value == SettingsValues.DARK_THEME) {
                 MainScreen(this, mainViewModel)
             }
         }
