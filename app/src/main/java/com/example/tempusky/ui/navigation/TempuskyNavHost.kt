@@ -2,6 +2,7 @@ package com.example.tempusky.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
@@ -53,32 +54,82 @@ fun TempuskyNavHost(navController: NavController, mainViewModel:  MainViewModel)
         }
         composable(NavigationRoutes.PROFILE,
             enterTransition = {
+                when(initialState.destination.route){
+                    NavigationRoutes.SETTINGS -> slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Up,
+                        animationSpec = tween(700)
+                    )
+                    else -> slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(700)
+                    )
+                }
+            },
+            exitTransition = {
+                when(targetState.destination.route){
+                    NavigationRoutes.SETTINGS -> slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Down,
+                        animationSpec = tween(700)
+                    )
+                    else -> slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(700)
+                    )
+                }
+            },
+            popEnterTransition = {
+                when(initialState.destination.route){
+                    NavigationRoutes.SETTINGS -> slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Up,
+                        animationSpec = tween(700)
+                    )
+                    else -> slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(700)
+                    )
+                }
+            },
+            popExitTransition = {
+                when(targetState.destination.route){
+                    NavigationRoutes.SETTINGS -> slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Down,
+                        animationSpec = tween(700)
+                    )
+                    else -> slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(700)
+                    )
+                }
+
+            }) {
+            ProfileScreen(navController = navController)
+        }
+        composable(NavigationRoutes.SETTINGS,
+            enterTransition = {
                 slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    AnimatedContentTransitionScope.SlideDirection.Down,
                     animationSpec = tween(700)
                 )
             },
             exitTransition = {
                 slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    AnimatedContentTransitionScope.SlideDirection.Up,
                     animationSpec = tween(700)
                 )
             },
             popEnterTransition = {
                 slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    AnimatedContentTransitionScope.SlideDirection.Down,
                     animationSpec = tween(700)
                 )
             },
             popExitTransition = {
                 slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    AnimatedContentTransitionScope.SlideDirection.Up,
                     animationSpec = tween(700)
                 )
-            }) {
-            ProfileScreen(navController = navController)
-        }
-        composable(NavigationRoutes.SETTINGS){
+            }
+        ){
             SettingsScreen()
         }
         composable(NavigationRoutes.SIGNUP){
