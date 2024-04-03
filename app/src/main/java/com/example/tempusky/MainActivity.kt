@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.example.tempusky.data.SettingsDataStore
@@ -24,7 +25,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")
-            TempuskyTheme(savedTheme.value == SettingsValues.DARK_THEME) {
+            TempuskyTheme(if(savedTheme.value == SettingsValues.DEFAULT_THEME) isSystemInDarkTheme() else savedTheme.value == SettingsValues.DARK_THEME) {
                 MainScreen(this, mainViewModel)
             }
         }

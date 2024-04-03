@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
+val DarkColorScheme = darkColorScheme(
     background = Color(0xFF292929),
     primary = Purple80,
     secondary = PurpleGrey40,
@@ -25,7 +25,7 @@ private val DarkColorScheme = darkColorScheme(
 
 )
 
-private val LightColorScheme = lightColorScheme(
+val LightColorScheme = lightColorScheme(
     background = Color(0xFFFBFBFB),
     primary = Purple40,
     secondary = PurpleGrey80,
@@ -61,7 +61,6 @@ fun TempuskyTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
-
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
