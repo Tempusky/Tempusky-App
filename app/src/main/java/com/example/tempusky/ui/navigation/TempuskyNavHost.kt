@@ -1,5 +1,8 @@
 package com.example.tempusky.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -21,10 +24,58 @@ fun TempuskyNavHost(navController: NavController, mainViewModel:  MainViewModel)
         composable(NavigationRoutes.LOGIN){
             LoginScreen(navController = navController, mainViewModel = mainViewModel)
         }
-        composable(NavigationRoutes.HOME){
+        composable(NavigationRoutes.HOME,
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(700)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(700)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(700)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(700)
+                )
+            }){
             HomeScreen()
         }
-        composable(NavigationRoutes.PROFILE){
+        composable(NavigationRoutes.PROFILE,
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(700)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(700)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(700)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(700)
+                )
+            }) {
             ProfileScreen(navController = navController)
         }
         composable(NavigationRoutes.SETTINGS){
@@ -33,8 +84,62 @@ fun TempuskyNavHost(navController: NavController, mainViewModel:  MainViewModel)
         composable(NavigationRoutes.SIGNUP){
             SignupScreen(navController = navController)
         }
-        composable(NavigationRoutes.SEARCH){
+        composable(NavigationRoutes.SEARCH,
+            enterTransition = {
+            when (initialState.destination.route) {
+                NavigationRoutes.HOME ->
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(700)
+                    )
+                NavigationRoutes.PROFILE ->
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(700)
+                    )
+                else -> null
+            }
+        },
+            exitTransition = {
+                when (targetState.destination.route) {
+                    NavigationRoutes.HOME ->
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(700)
+                        )
+
+                    NavigationRoutes.PROFILE ->
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Left,
+                            animationSpec = tween(700)
+                        )
+                    else -> null
+                }
+            },
+            popEnterTransition = {
+                when (initialState.destination.route) {
+                    NavigationRoutes.HOME ->
+                        slideIntoContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(700)
+                        )
+
+                    else -> null
+                }
+            },
+            popExitTransition = {
+                when (targetState.destination.route) {
+                    NavigationRoutes.HOME ->
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(700)
+                        )
+
+                    else -> null
+                }
+            }){
             SearchScreen()
         }
     }
 }
+
