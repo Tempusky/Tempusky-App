@@ -3,6 +3,7 @@ package com.example.tempusky
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.tempusky.data.SettingsValues
 
 class MainViewModel : ViewModel() {
 
@@ -19,6 +20,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun setAppTheme(v : String){
+        if(v == SettingsValues.DEFAULT_THEME) return
         _isDarkTheme.value = v
     }
 

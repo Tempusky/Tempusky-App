@@ -10,16 +10,11 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.data.SettingsValues
 
@@ -51,23 +46,25 @@ val LightColorScheme = lightColorScheme(
 
 @Composable
 fun TempuskyTheme(
-    context: MainActivity,
     mainViewModel: MainViewModel,
+    darkTheme: Boolean,
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    var appTheme by remember { mutableStateOf("") }
-    mainViewModel.appTheme.observe(context) {
-        appTheme = it
-    }
     val colorScheme = when {
-        appTheme == SettingsValues.DARK_THEME -> DarkColorScheme
-        appTheme == SettingsValues.LIGHT_THEME -> LightColorScheme
-        else -> {
-            if (isSystemInDarkTheme()) DarkColorScheme
-            else LightColorScheme
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+    mainViewModel.setAppTheme(if(darkTheme) SettingsValues.DARK_THEME else SettingsValues.LIGHT_THEME)
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.primary.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
-
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,

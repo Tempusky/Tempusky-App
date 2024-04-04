@@ -9,6 +9,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
@@ -20,7 +21,7 @@ import com.example.tempusky.ui.screens.settings.SettingsScreen
 import com.example.tempusky.ui.screens.signup.SignupScreen
 
 @Composable
-fun TempuskyNavHost(navController: NavController, mainViewModel:  MainViewModel) {
+fun TempuskyNavHost(context: MainActivity, navController: NavController, mainViewModel:  MainViewModel) {
     NavHost(startDestination = NavigationRoutes.LOGIN, navController = navController as NavHostController) {
         composable(NavigationRoutes.LOGIN){
             LoginScreen(navController = navController, mainViewModel = mainViewModel)
@@ -50,7 +51,7 @@ fun TempuskyNavHost(navController: NavController, mainViewModel:  MainViewModel)
                     animationSpec = tween(700)
                 )
             }){
-            HomeScreen()
+            HomeScreen(context, mainViewModel)
         }
         composable(NavigationRoutes.PROFILE,
             enterTransition = {
@@ -130,7 +131,7 @@ fun TempuskyNavHost(navController: NavController, mainViewModel:  MainViewModel)
                 )
             }
         ){
-            SettingsScreen()
+            SettingsScreen(mainViewModel)
         }
         composable(NavigationRoutes.SIGNUP){
             SignupScreen(navController = navController)

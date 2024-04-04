@@ -36,6 +36,6 @@ fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel) {
             }
         })
     {
-        TempuskyNavHost(navController = navController, mainViewModel)
+        TempuskyNavHost(mainContext, navController = navController, mainViewModel)
     }
 }

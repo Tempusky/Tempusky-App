@@ -21,12 +21,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.tempusky.MainViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(mainViewModel: MainViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dataStore = SettingsDataStore(context)
@@ -73,6 +74,7 @@ fun SettingsScreen() {
                     onThemeSelected = { theme ->
                         scope.launch {
                             dataStore.setTheme(theme)
+                            mainViewModel.setAppTheme(theme)
                         }
                     }
                 )

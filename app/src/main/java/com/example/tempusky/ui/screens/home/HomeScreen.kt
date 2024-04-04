@@ -5,9 +5,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.example.tempusky.MainActivity
+import com.example.tempusky.MainViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
 import com.mapbox.geojson.Point
@@ -20,22 +26,23 @@ import com.mapbox.maps.extension.style.style
 
 @OptIn(MapboxExperimental::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
     val darkThemeMap = "mapbox://styles/faysalbadaoui/cluikavl200jr01r2hsgu2ejc"
     val lightThemeMap = "mapbox://styles/mapbox/outdoors-v12"
-    val dataStore = SettingsDataStore(LocalContext.current)
-    val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
-
-    LaunchedEffect(Unit){
-        Log.d("HomeScreen", "Saved theme:${savedTheme.value}")
+    var deviceTheme by remember { mutableStateOf("") }
+    mainViewModel.appTheme.observe(context) {
+        deviceTheme = it
     }
-    key(savedTheme.value){
+    LaunchedEffect(Unit){
+        Log.d("HomeScreen", "Saved theme:${deviceTheme}")
+    }
+    key(deviceTheme){
         MapboxMap(
             Modifier.fillMaxSize(),
             mapInitOptionsFactory = { context ->
                 MapInitOptions(
                     context = context,
-                    styleUri = if(savedTheme.value == "Dark") darkThemeMap else lightThemeMap,
+                    styleUri = if(deviceTheme == "Dark") darkThemeMap else lightThemeMap,
                 )
             },
             mapViewportState = MapViewportState().apply {

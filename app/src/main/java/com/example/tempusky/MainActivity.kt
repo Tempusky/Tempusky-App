@@ -21,9 +21,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = SettingsDataStore(this)
+
         setContent {
-            mainViewModel.setAppTheme(dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME).value)
-            TempuskyTheme(this, mainViewModel) {
+            val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
+            Log.d(TAG, "Saved theme: ${savedTheme.value}")
+            TempuskyTheme(mainViewModel, if(savedTheme.value == SettingsValues.DEFAULT_THEME) isSystemInDarkTheme() else savedTheme.value == SettingsValues.DARK_THEME) {
                 MainScreen(this, mainViewModel)
             }
         }
