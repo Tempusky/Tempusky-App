@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -62,12 +63,13 @@ fun SignupScreen(navController: NavController) {
 
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize(),
+                    .weight(2.5f)
+                    .fillMaxWidth(0.8f),
                 verticalArrangement = Arrangement.SpaceAround,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
+                    modifier = Modifier.padding(bottom = 10.dp),
                     text = "Signup with your credentials:",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -100,6 +102,7 @@ fun SignupScreen(navController: NavController) {
                     },
                     label = { Text("Email address") },
                     placeholder = { Text(text = "Enter your e-mail") },
+                    modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
                 )
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -129,6 +132,7 @@ fun SignupScreen(navController: NavController) {
                     },
                     label = { Text("Username") },
                     placeholder = { Text(text = "Enter your Username") },
+                    modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
                 )
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -158,6 +162,7 @@ fun SignupScreen(navController: NavController) {
                     },
                     label = { Text(text = "Password") },
                     placeholder = { Text(text = "Enter your password") },
+                    modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
                 )
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -187,6 +192,7 @@ fun SignupScreen(navController: NavController) {
                     },
                     label = { Text(text = "Confirm Password") },
                     placeholder = { Text("Confirm your password") },
+                    modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
                 )
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {

@@ -60,7 +60,7 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
 
             Column(modifier = Modifier
                 .weight(1f)
-                .fillMaxSize(), verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally) {
+                .fillMaxWidth(0.8f), verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(text = "Login with your credentials:", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -90,6 +90,7 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                     },
                     label = { Text("Email address") },
                     placeholder = { Text(text = "Enter your e-mail") },
+                    modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -119,6 +120,7 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                     label = { Text(text = "Password") },
                     maxLines = 1,
                     placeholder = { Text(text = "Enter your password") },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
