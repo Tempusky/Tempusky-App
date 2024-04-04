@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -82,6 +84,10 @@ fun SignupScreen(navController: NavController) {
                         focusedPlaceholderColor = Color.LightGray
                     ),
                     value = email,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next
+                    ),
+                    maxLines = 1,
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Email,
@@ -107,6 +113,10 @@ fun SignupScreen(navController: NavController) {
                         focusedPlaceholderColor = Color.LightGray
                     ),
                     value = userName,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next
+                    ),
+                    maxLines = 1,
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Person,
@@ -132,6 +142,10 @@ fun SignupScreen(navController: NavController) {
                         focusedPlaceholderColor = Color.LightGray
                     ),
                     value = password,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next
+                    ),
+                    maxLines = 1,
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
@@ -157,6 +171,10 @@ fun SignupScreen(navController: NavController) {
                         focusedPlaceholderColor = Color.LightGray
                     ),
                     value = confirmPassword,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done
+                    ),
+                    maxLines = 1,
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,

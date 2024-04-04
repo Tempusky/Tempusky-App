@@ -61,10 +61,10 @@ fun BottomNavBar(navController: NavController) {
             Box(
                 modifier = Modifier
                     .weight(weight) // Apply equal weight to each item
+                    .clickable { navController.navigate(route.route) }
             ) {
                 NavBarItem(
                     isSelected = isSelected,
-                    onClick = { navController.navigate(route.route) },
                     icon = route.icon
                 )
             }
@@ -75,7 +75,6 @@ fun BottomNavBar(navController: NavController) {
 @Composable
 fun NavBarItem(
     isSelected: Boolean,
-    onClick: () -> Unit,
     icon: ImageVector,
 ) {
     val color = if (isSelected) MaterialTheme.colorScheme.onBackground else Color.Gray
@@ -88,7 +87,6 @@ fun NavBarItem(
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
             Box(
                 modifier = Modifier
-                    .clickable { onClick() }
                     .background(Color.Transparent)
             ) {
                 Icon(

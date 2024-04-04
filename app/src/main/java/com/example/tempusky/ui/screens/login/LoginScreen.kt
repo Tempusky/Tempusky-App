@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -33,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -70,6 +73,10 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
                         focusedPlaceholderColor = Color.LightGray
                     ),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next
+                    ),
+                    maxLines = 1,
                     value = email,
                     leadingIcon = {
                         Icon(
@@ -106,7 +113,11 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                         password = it
                         isButtonEnabled = email.isNotEmpty() && password.isNotEmpty()
                     },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done
+                    ),
                     label = { Text(text = "Password") },
+                    maxLines = 1,
                     placeholder = { Text(text = "Enter your password") },
                 )
             }
