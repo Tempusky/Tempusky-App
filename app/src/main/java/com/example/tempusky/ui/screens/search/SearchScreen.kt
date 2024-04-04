@@ -38,8 +38,7 @@ fun SearchScreen() {
         .fillMaxHeight(0.93f)
         .fillMaxWidth()){
         Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp)) {
+            .fillMaxSize()) {
             Text(text = "Search for data here!", fontSize = 25.sp, fontWeight = FontWeight.SemiBold)
             OutlinedTextField(
                 shape = MaterialTheme.shapes.medium,
@@ -68,7 +67,7 @@ fun SearchScreen() {
                 },
                 placeholder = { Text(text = "Enter the location") },
             )
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(10.dp)) {
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
                 item(1)
                 {
                     Text(text = "Data received near you:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
