@@ -22,6 +22,7 @@ import com.example.tempusky.core.EnvironmentSensorManager
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.core.services.LocationForegroundService
+import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.ui.MainScreen
 import com.example.tempusky.ui.theme.TempuskyTheme
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -32,14 +33,18 @@ import com.google.android.material.snackbar.Snackbar
 class MainActivity : ComponentActivity() {
 
     val mainViewModel : MainViewModel by viewModels()
+    val locatioViewModel: LocationViewModel by viewModels()
     private lateinit var dataStore : SettingsDataStore
     private var settings = false
     private lateinit var sensorManager: EnvironmentSensorManager
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = SettingsDataStore(this)
         sensorManager = EnvironmentSensorManager(this)
+        locationViewModel = locatioViewModel
+        locatioViewModel.setLastUpdateTime("")
         setContent {
             val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")
@@ -63,36 +68,41 @@ class MainActivity : ComponentActivity() {
             when {
                 permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
                     // Precise location access granted.
+                    mRequestingLocationUpdates = true
                     Log.i(TAG, "User agreed to make precise required location settings changes, updates requested, starting location updates.")
                     val foregroundIntent = Intent(this, LocationForegroundService::class.java)
                     startForegroundService(foregroundIntent)
                 }
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                     // Only approximate location access granted.
+                    mRequestingLocationUpdates = true
                     Log.i(TAG, "User agreed to make coarse required location settings changes, updates requested, starting location updates.")
                     val foregroundIntent = Intent(this, LocationForegroundService::class.java)
                     startForegroundService(foregroundIntent)
                 } else -> {
-                // No location access granted.
-                showSnackbar(
-                    R.string.permission_denied_explanation,
-                    R.string.settings
-                ) { // Build intent that displays the App settings screen.
-                    val intent = Intent()
-                    intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                    val uri = Uri.fromParts(
-                        "package",
-                        //BuildConfig.APPLICATION_ID , null
-                        packageName, null
-                    )  // Amb la darrera API level deprecated. Ara és packageName
-                    intent.data = uri
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    startActivity(intent)
+                    if (mRequestingLocationUpdates && checkPermissions()) {
+                        Log.d(TAG, "onStart: requesting location updates")
+                        val foregroundIntent = Intent(this, LocationForegroundService::class.java)
+                        startForegroundService(foregroundIntent)
+                    } else if (!checkPermissions() && !settings) {
+                        requestPermissions()
+                    }
+                    // No location access granted.
+                        TODO("Show snackbkar or alert that permissions not granted")
+                    //>Show snacbr that permissions not allowed
                 }
-            }
             }
         }
 
+        //locatioViewModel.setCurrentLocation(this@MainActivity, mFusedLocationClient)
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart: called")
+        sensorManager.startListening()
     }
 
     private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
@@ -125,11 +135,10 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         // Within {@code onPause()}, we remove location updates. Here, we resume receiving
         // location updates if the user has requested them.
-        if (mRequestingLocationUpdates && checkPermissions()) {
+        sensorManager.startListening()
+        if (checkPermissions()) {
             val foregroundIntent = Intent(this, LocationForegroundService::class.java)
             startForegroundService(foregroundIntent)
-        } else if (!checkPermissions() && !settings) {
-            requestPermissions()
         }
 
     }
@@ -195,14 +204,7 @@ class MainActivity : ComponentActivity() {
         // request previously, but didn't check the "Don't ask again" checkbox.
         if (shouldProvideRationale) {
             Log.i(TAG, "Displaying permission rationale to provide additional context.")
-            showSnackbar(
-                R.string.permission_rationale,
-                android.R.string.ok
-            ) { // Request permission
-                locationPermissionLauncher.launch(arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION))
-            }
+           //Show snackbar
             settings = true
         } else {
             Log.i(TAG, "Requesting permission")
@@ -230,6 +232,7 @@ class MainActivity : ComponentActivity() {
         private const val KEY_LOCATION = "location"
         private const val KEY_LAST_UPDATED_TIME_STRING = "last-updated-time-string"
         lateinit var mainViewModel: MainViewModel
+        lateinit var locationViewModel: LocationViewModel
         lateinit var mFusedLocationClient: FusedLocationProviderClient
         lateinit var mSettingsClient: SettingsClient
         lateinit var context : MainActivity

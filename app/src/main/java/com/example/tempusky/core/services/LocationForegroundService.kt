@@ -15,9 +15,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.example.tempusky.MainActivity
 import com.example.tempusky.MainActivity.Companion.context
 import com.example.tempusky.MainActivity.Companion.mFusedLocationClient
 import com.example.tempusky.MainActivity.Companion.mSettingsClient
+import com.example.tempusky.core.broadcastReceivers.LocationUpdateReceiver
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationCallback
@@ -44,6 +46,7 @@ class LocationForegroundService : Service() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "start location service as foreground")
         startForegroundService()
         createLocationCallback()
         createLocationRequest()
@@ -53,6 +56,7 @@ class LocationForegroundService : Service() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startForegroundService() {
+        Log.d(TAG, "start foreground service")
         val CHANNEL_ID = "01"
         val channel = NotificationChannel(
             CHANNEL_ID,
@@ -78,9 +82,18 @@ class LocationForegroundService : Service() {
     }
 
     private fun createLocationCallback() {
+        Log.d(TAG, "create location callback")
         mLocationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
+                MainActivity.locationViewModel.setLatitude(locationResult.lastLocation!!.latitude)
+                MainActivity.locationViewModel.setLongitude(locationResult.lastLocation!!.longitude)
                 super.onLocationResult(locationResult)
+                val intent = Intent(
+                    context,
+                    LocationUpdateReceiver::class.java
+                )
+                intent.putExtra("location", locationResult.lastLocation)
+                context.sendBroadcast(intent)
             }
         }
     }
@@ -115,6 +128,7 @@ class LocationForegroundService : Service() {
 
     private fun startLocationUpdates() {
         // Begin by checking if the device has the necessary location settings.
+        MainActivity.mRequestingLocationUpdates = true
         mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
             .addOnSuccessListener(context) {
                 Log.i(TAG, "All location settings are satisfied.")

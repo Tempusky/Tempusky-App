@@ -15,6 +15,7 @@ class MainViewModel : ViewModel() {
 
     private var _isDarkTheme = MutableLiveData("")
     val appTheme : LiveData<String> = _isDarkTheme
+
     fun setLoading(v : Boolean){
         _isLoading.value = v
     }
