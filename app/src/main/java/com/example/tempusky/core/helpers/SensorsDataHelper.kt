@@ -5,13 +5,13 @@ import androidx.lifecycle.MutableLiveData
 
 object SensorsDataHelper {
 
-    private var _tempData : MutableLiveData<Float> = MutableLiveData()
+    private var _tempData : MutableLiveData<Float> = MutableLiveData(0.0f)
     val tempData : LiveData<Float> = _tempData
 
-    private var _pressureData : MutableLiveData<Float> = MutableLiveData()
+    private var _pressureData : MutableLiveData<Float> = MutableLiveData(0.0f)
     val pressureData : LiveData<Float> = _pressureData
 
-    private var _humidityData : MutableLiveData<Float> = MutableLiveData()
+    private var _humidityData : MutableLiveData<Float> = MutableLiveData(0.0f)
     val humidityData : LiveData<Float> = _humidityData
 
     fun updateTemperatureData(temperature: Float) {

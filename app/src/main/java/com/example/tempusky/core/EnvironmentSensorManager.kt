@@ -22,9 +22,9 @@ class EnvironmentSensorManager(private val context: Context) : SensorEventListen
     }
 
     fun startListening() {
-        temperatureSensor?.also { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL) }
-        pressureSensor?.also { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL) }
-        humiditySensor?.also { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL) }
+        temperatureSensor?.also { sensorManager.registerListener(this, it, 10000) }
+        pressureSensor?.also { sensorManager.registerListener(this, it, 10000) }
+        humiditySensor?.also { sensorManager.registerListener(this, it, 10000) }
     }
 
     fun stopListening() {
@@ -40,17 +40,17 @@ class EnvironmentSensorManager(private val context: Context) : SensorEventListen
             when (it.sensor.type) {
                 Sensor.TYPE_AMBIENT_TEMPERATURE -> {
                     val temperatureCelsius = it.values[0]
-                    Log.d(TAG, "Ambient Temperature: $temperatureCelsius °C")
+                    //Log.d(TAG, "Temperature: $temperatureCelsius")
                     SensorsDataHelper.updateTemperatureData(temperatureCelsius)
                 }
                 Sensor.TYPE_PRESSURE -> {
                     val pressure = it.values[0]
-                    Log.d(TAG, "Pressure: $pressure hPa")
+                    //Log.d(TAG, "Pressure: $pressure")
                     SensorsDataHelper.updatePressureData(pressure)
                 }
                 Sensor.TYPE_RELATIVE_HUMIDITY -> {
                     val humidity = it.values[0]
-                    Log.d(TAG, "Relative Humidity: $humidity %")
+                    //Log.d(TAG, "Humidity: $humidity")
                     SensorsDataHelper.updateHumidityData(humidity)
                 }
 
