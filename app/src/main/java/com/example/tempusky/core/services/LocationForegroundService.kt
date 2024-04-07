@@ -1,4 +1,4 @@
-package com.example.tempusky.data.services
+package com.example.tempusky.core.services
 
 import android.Manifest
 import android.app.Notification
@@ -15,7 +15,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.example.tempusky.MainActivity
 import com.example.tempusky.MainActivity.Companion.context
 import com.example.tempusky.MainActivity.Companion.mFusedLocationClient
 import com.example.tempusky.MainActivity.Companion.mSettingsClient
@@ -27,8 +26,6 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.Priority
-import java.text.DateFormat
-import java.util.Date
 
 
 class LocationForegroundService : Service() {

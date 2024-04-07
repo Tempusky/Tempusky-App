@@ -1,4 +1,4 @@
-package com.example.tempusky.data.broadcastReceivers
+package com.example.tempusky.core.broadcastReceivers
 
 import android.content.BroadcastReceiver
 import android.content.Context

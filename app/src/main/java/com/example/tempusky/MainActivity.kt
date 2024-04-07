@@ -18,9 +18,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
+import com.example.tempusky.core.EnvironmentSensorManager
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
-import com.example.tempusky.data.services.LocationForegroundService
+import com.example.tempusky.core.services.LocationForegroundService
 import com.example.tempusky.ui.MainScreen
 import com.example.tempusky.ui.theme.TempuskyTheme
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -33,12 +34,12 @@ class MainActivity : ComponentActivity() {
     val mainViewModel : MainViewModel by viewModels()
     private lateinit var dataStore : SettingsDataStore
     private var settings = false
-
+    private lateinit var sensorManager: EnvironmentSensorManager
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = SettingsDataStore(this)
-
+        sensorManager = EnvironmentSensorManager(this)
         setContent {
             val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")
