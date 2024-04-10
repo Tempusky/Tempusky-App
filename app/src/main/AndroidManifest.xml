@@ -28,6 +28,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".core.services.LocationForegroundService" android:exported="false" android:enabled="true" android:foregroundServiceType="location"/>
         <receiver android:name=".core.broadcastReceivers.LocationUpdateReceiver" />
         <receiver android:name=".core.broadcastReceivers.EnvironmentSensorsReceiver" />
     </application>
