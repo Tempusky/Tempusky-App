@@ -10,7 +10,6 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
-import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.ui.navigation.BottomNavBar
 import com.example.tempusky.ui.navigation.TempuskyNavHost
 
