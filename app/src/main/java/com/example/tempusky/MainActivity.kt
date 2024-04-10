@@ -53,10 +53,6 @@ class MainActivity : ComponentActivity() {
         mRequestingLocationUpdates = false
         context = this
 
-        //mCurrentLocation = Location()
-        //mCurrentLocation.latitude = 41.6082
-        //mCurrentLocation.longitude = 0.6231
-
         locationPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
@@ -77,6 +73,7 @@ class MainActivity : ComponentActivity() {
                 } else -> {
                     if (mRequestingLocationUpdates && checkPermissions()) {
                         Log.d(TAG, "onStart: requesting location updates")
+                        requestPermissions()
                         val foregroundIntent = Intent(this, LocationForegroundService::class.java)
                         startForegroundService(foregroundIntent)
                     } else if (!checkPermissions() && !settings) {
@@ -103,21 +100,13 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.")
             return
         }
-
-        // It is a good practice to remove location requests when the activity is in a paused or
-        // stopped state. Doing so helps battery performance and is especially
-        // recommended in applications that request frequent location updates.
-        //mFusedLocationClient.removeLocationUpdates(mLocationCallback)
         mRequestingLocationUpdates = false
         stopService(Intent(this, LocationForegroundService::class.java))
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     public override fun onResume() {
         super.onResume()
-        // Within {@code onPause()}, we remove location updates. Here, we resume receiving
-        // location updates if the user has requested them.
         if (checkPermissions()) {
             val foregroundIntent = Intent(this, LocationForegroundService::class.java)
             startForegroundService(foregroundIntent)
@@ -128,7 +117,6 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
 
-        // Remove location updates to save battery.
         if (mRequestingLocationUpdates)
             stopLocationUpdates()
     }
@@ -138,28 +126,7 @@ class MainActivity : ComponentActivity() {
         super.onSaveInstanceState(savedInstanceState)
     }
 
-    /**
-     * Shows a [Snackbar].
-     *
-     * @param mainTextStringId The id for the string resource for the Snackbar text.
-     * @param actionStringId   The text of the action item.
-     * @param listener         The listener associated with the Snackbar action.
-     */
-    private fun showSnackbar(
-        mainTextStringId: Int, actionStringId: Int,
-        listener: View.OnClickListener
-    ) {
-        Snackbar.make(
-            findViewById(android.R.id.content),
-            getString(mainTextStringId),
-            Snackbar.LENGTH_INDEFINITE
-        )
-            .setAction(getString(actionStringId), listener).show()
-    }
 
-    /**
-     * Return the current state of the permissions needed.
-     */
     private fun checkPermissions(): Boolean {
         val permissionFineState = ActivityCompat.checkSelfPermission(
             this,
@@ -182,19 +149,16 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
 
-        // Provide an additional rationale to the user. This would happen if the user denied the
-        // request previously, but didn't check the "Don't ask again" checkbox.
         if (shouldProvideRationale) {
             Log.i(TAG, "Displaying permission rationale to provide additional context.")
            //Show snackbar
             settings = true
         } else {
             Log.i(TAG, "Requesting permission")
-            // Request permission. It's possible this can be auto answered if device policy
-            // sets the permission in a given state or the user denied the permission
-            // previously and checked "Never ask again".
 
-
+            locationPermissionLauncher.launch(arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION))
         }
     }
 
