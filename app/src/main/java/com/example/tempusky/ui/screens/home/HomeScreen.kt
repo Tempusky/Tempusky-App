@@ -1,10 +1,10 @@
 package com.example.tempusky.ui.screens.home
 
+import android.Manifest
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -14,19 +14,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
-import com.example.tempusky.data.SettingsDataStore
-import com.example.tempusky.data.SettingsValues
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.Style
+import com.mapbox.maps.extension.compose.DefaultSettingsProvider
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.style.style
+import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 
 @OptIn(MapboxExperimental::class)
 @Composable
 fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
+    MainActivity.locationPermissionLauncher.launch(
+        arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+    )
     val darkThemeMap = "mapbox://styles/faysalbadaoui/cluikavl200jr01r2hsgu2ejc"
     val lightThemeMap = "mapbox://styles/mapbox/outdoors-v12"
     var deviceTheme by remember { mutableStateOf("") }
@@ -38,7 +44,7 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
     }
     key(deviceTheme){
         MapboxMap(
-            Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             mapInitOptionsFactory = { context ->
                 MapInitOptions(
                     context = context,
@@ -56,6 +62,12 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
                     Style.DARK
                 }
             },
+            locationComponentSettings = DefaultSettingsProvider.defaultLocationComponentSettings(
+                context = LocalContext.current
+            ).toBuilder()
+                .setLocationPuck(createDefault2DPuck(withBearing = false))
+                .setEnabled(true)
+                .build()
         )
     }
 
