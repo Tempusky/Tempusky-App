@@ -87,6 +87,7 @@ class LocationForegroundService : Service() {
             override fun onLocationResult(locationResult: LocationResult) {
                 MainActivity.locationViewModel.setLatitude(locationResult.lastLocation!!.latitude)
                 MainActivity.locationViewModel.setLongitude(locationResult.lastLocation!!.longitude)
+                Log.d(TAG, "Location update: ${MainActivity.locationViewModel.latitude}, ${MainActivity.locationViewModel.longitude}")
                 super.onLocationResult(locationResult)
                 val intent = Intent(
                     context,
