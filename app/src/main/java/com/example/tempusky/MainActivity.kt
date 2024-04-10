@@ -1,12 +1,10 @@
 package com.example.tempusky
 
-import android.Manifest;
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.activity.ComponentActivity
@@ -18,11 +16,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
-import com.example.tempusky.core.EnvironmentSensorManager
-import com.example.tempusky.data.SettingsDataStore
-import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.core.services.LocationForegroundService
 import com.example.tempusky.core.viewModels.LocationViewModel
+import com.example.tempusky.data.SettingsDataStore
+import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.ui.MainScreen
 import com.example.tempusky.ui.theme.TempuskyTheme
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -36,13 +33,11 @@ class MainActivity : ComponentActivity() {
     val locatioViewModel: LocationViewModel by viewModels()
     private lateinit var dataStore : SettingsDataStore
     private var settings = false
-    private lateinit var sensorManager: EnvironmentSensorManager
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = SettingsDataStore(this)
-        sensorManager = EnvironmentSensorManager(this)
         locationViewModel = locatioViewModel
         locatioViewModel.setLastUpdateTime("")
         setContent {
@@ -56,7 +51,7 @@ class MainActivity : ComponentActivity() {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         mSettingsClient = LocationServices.getSettingsClient(this)
         mRequestingLocationUpdates = false
-
+        context = this
 
         //mCurrentLocation = Location()
         //mCurrentLocation.latitude = 41.6082
@@ -85,35 +80,22 @@ class MainActivity : ComponentActivity() {
                         val foregroundIntent = Intent(this, LocationForegroundService::class.java)
                         startForegroundService(foregroundIntent)
                     } else if (!checkPermissions() && !settings) {
+                        Log.d(TAG, "onStart: requesting permissions")
                         requestPermissions()
                     }
                     // No location access granted.
-                        TODO("Show snackbkar or alert that permissions not granted")
+                TODO("Show snackbkar or alert that permissions not granted")
+                Log.d(TAG, "User agreed to make required location settings changes, updates requested, starting location updates.")
                     //>Show snacbr that permissions not allowed
                 }
             }
         }
-
-        //locatioViewModel.setCurrentLocation(this@MainActivity, mFusedLocationClient)
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart: called")
-        sensorManager.startListening()
-    }
-
-    private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
-        if (savedInstanceState != null) {
-            if (savedInstanceState.keySet().contains(KEY_REQUESTING_LOCATION_UPDATES)) {
-                mRequestingLocationUpdates = savedInstanceState.getBoolean(
-                    KEY_REQUESTING_LOCATION_UPDATES
-                )
-            }
-
-        }
     }
 
     private fun stopLocationUpdates() {
@@ -135,7 +117,6 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         // Within {@code onPause()}, we remove location updates. Here, we resume receiving
         // location updates if the user has requested them.
-        sensorManager.startListening()
         if (checkPermissions()) {
             val foregroundIntent = Intent(this, LocationForegroundService::class.java)
             startForegroundService(foregroundIntent)
