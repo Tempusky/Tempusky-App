@@ -29,6 +29,7 @@
             </intent-filter>
         </activity>
         <receiver android:name=".core.broadcastReceivers.LocationUpdateReceiver" />
+        <receiver android:name=".core.broadcastReceivers.EnvironmentSensorsReceiver" />
     </application>
 
 </manifest>
