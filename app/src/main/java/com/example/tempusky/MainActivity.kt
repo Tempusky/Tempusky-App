@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
         // recommended in applications that request frequent location updates.
         //mFusedLocationClient.removeLocationUpdates(mLocationCallback)
         mRequestingLocationUpdates = false
+        stopService(Intent(this, LocationForegroundService::class.java))
 
     }
 
