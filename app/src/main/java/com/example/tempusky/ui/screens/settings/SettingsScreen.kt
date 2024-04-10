@@ -34,7 +34,7 @@ fun SettingsScreen(mainViewModel: MainViewModel) {
 
     val savedLanguage = dataStore.getLanguage.collectAsState(initial = SettingsValues.DEFAULT_LANGUAGE)
     val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
-
+    val savedNetwork = dataStore.getNetwork.collectAsState(initial = SettingsValues.DEFAULT_NETWORK)
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -78,6 +78,24 @@ fun SettingsScreen(mainViewModel: MainViewModel) {
                         }
                     }
                 )
+
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Network", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Spacer(modifier = Modifier.weight(1f))
+                NetworkSelector(
+                    networks = SettingsValues.NETWORKS,
+                    selectedNetwork = savedNetwork.value,
+                    onNetworkSelected = { network ->
+                        scope.launch {
+                            dataStore.setNetwork(network)
+                        }
+                    }
+                )
             }
         }
     }
@@ -108,6 +126,38 @@ fun LanguageSelector(
                 )
                 Text(
                     text = language,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NetworkSelector(
+    networks: List<String>,
+    selectedNetwork: String,
+    onNetworkSelected: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.selectableGroup()
+    ) {
+        networks.forEach { network ->
+            Row(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .selectable(
+                        selected = (network == selectedNetwork),
+                        onClick = { onNetworkSelected(network) }
+                    )
+            ) {
+                RadioButton(
+                    selected = (network == selectedNetwork),
+                    onClick = { onNetworkSelected(network) },
+                    colors = RadioButtonDefaults.colors(selectedColor = androidx.compose.ui.graphics.Color.Blue)
+                )
+                Text(
+                    text = network,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 )
             }

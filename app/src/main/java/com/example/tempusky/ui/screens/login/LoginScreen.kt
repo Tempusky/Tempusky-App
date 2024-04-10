@@ -1,5 +1,6 @@
 package com.example.tempusky.ui.screens.login
 
+import android.Manifest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 
@@ -136,7 +138,14 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                     }
 
                     Button(
-                        onClick = { navController.navigate(NavigationRoutes.HOME); mainViewModel.setBottomBarVisible(true) },
+                        onClick = {
+                            MainActivity.locationPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            );
+                            navController.navigate(NavigationRoutes.HOME); mainViewModel.setBottomBarVisible(true) },
                         enabled = isButtonEnabled,
                         shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(

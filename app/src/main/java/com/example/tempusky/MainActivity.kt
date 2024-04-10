@@ -194,9 +194,7 @@ class MainActivity : ComponentActivity() {
             // sets the permission in a given state or the user denied the permission
             // previously and checked "Never ask again".
 
-            locationPermissionLauncher.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION))
+
         }
     }
 

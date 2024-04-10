@@ -16,6 +16,7 @@ class SettingsDataStore(private val context: Context) {
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = SETTINGS_DATA_STORE_NAME)
         val LANGUAGE_KEY = stringPreferencesKey("language")
         val THEME_KEY = stringPreferencesKey("theme")
+        val NETWORK_KEY = stringPreferencesKey("network")
     }
 
     val getLanguage: Flow<String> = context.dataStore.data
@@ -37,6 +38,17 @@ class SettingsDataStore(private val context: Context) {
     suspend fun setTheme(theme: String) {
         context.dataStore.edit { preferences ->
             preferences[THEME_KEY] = theme
+        }
+    }
+
+    val getNetwork: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[NETWORK_KEY] ?: SettingsValues.DEFAULT_NETWORK
+        }
+
+    suspend fun setNetwork(network: String) {
+        context.dataStore.edit { preferences ->
+            preferences[NETWORK_KEY] = network
         }
     }
 

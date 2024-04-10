@@ -27,12 +27,6 @@ import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 @OptIn(MapboxExperimental::class)
 @Composable
 fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
-    MainActivity.locationPermissionLauncher.launch(
-        arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-    )
     val darkThemeMap = "mapbox://styles/faysalbadaoui/cluikavl200jr01r2hsgu2ejc"
     val lightThemeMap = "mapbox://styles/mapbox/outdoors-v12"
     var deviceTheme by remember { mutableStateOf("") }
