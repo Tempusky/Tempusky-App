@@ -60,6 +60,7 @@ class MainActivity : ComponentActivity() {
                 permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
                     // Precise location access granted.
                     mRequestingLocationUpdates = true
+                    mainViewModel.setLoading(false)
                     Log.i(TAG, "User agreed to make precise required location settings changes, updates requested, starting location updates.")
                     val foregroundIntent = Intent(this, LocationForegroundService::class.java)
                     startForegroundService(foregroundIntent)
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                     // Only approximate location access granted.
                     mRequestingLocationUpdates = true
+                    mainViewModel.setLoading(false)
                     Log.i(TAG, "User agreed to make coarse required location settings changes, updates requested, starting location updates.")
                     val foregroundIntent = Intent(this, LocationForegroundService::class.java)
                     startForegroundService(foregroundIntent)
@@ -81,9 +83,7 @@ class MainActivity : ComponentActivity() {
                         requestPermissions()
                     }
                     // No location access granted.
-                TODO("Show snackbkar or alert that permissions not granted")
-                Log.d(TAG, "User agreed to make required location settings changes, updates requested, starting location updates.")
-                    //>Show snacbr that permissions not allowed
+                       Log.i(TAG, "User denied location access, updates not requested, starting location updates.")
                 }
             }
         }

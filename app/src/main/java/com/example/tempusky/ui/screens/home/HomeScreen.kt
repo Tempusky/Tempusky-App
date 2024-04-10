@@ -2,7 +2,11 @@ package com.example.tempusky.ui.screens.home
 
 import android.Manifest
 import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +34,10 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
     val darkThemeMap = "mapbox://styles/faysalbadaoui/cluikavl200jr01r2hsgu2ejc"
     val lightThemeMap = "mapbox://styles/mapbox/outdoors-v12"
     var deviceTheme by remember { mutableStateOf("") }
+    var requestingPermissions by remember { mutableStateOf(false) }
+    mainViewModel.isLoading.observe(context) {
+        requestingPermissions = it
+    }
     mainViewModel.appTheme.observe(context) {
         deviceTheme = it
     }
@@ -37,32 +45,47 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
         Log.d("HomeScreen", "Saved theme:${deviceTheme}")
     }
     key(deviceTheme){
-        MapboxMap(
-            modifier = Modifier.fillMaxSize(),
-            mapInitOptionsFactory = { context ->
-                MapInitOptions(
-                    context = context,
-                    styleUri = if(deviceTheme == "Dark") darkThemeMap else lightThemeMap,
-                )
-            },
-            mapViewportState = MapViewportState().apply {
-                setCameraOptions {
-                    zoom(11.0)
-                    center(Point.fromLngLat(0.62, 41.6167))
-                    pitch(0.0)
-                    bearing(0.0)
+        if(requestingPermissions){
+            Column(modifier =Modifier.fillMaxSize()){
+                Text(text ="Accept permissions to display the map.")
+                Button(onClick = { MainActivity.locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                ); }) {
+                    Text(text = "Accept permissions")
                 }
-                style{
-                    Style.DARK
-                }
-            },
-            locationComponentSettings = DefaultSettingsProvider.defaultLocationComponentSettings(
-                context = LocalContext.current
-            ).toBuilder()
-                .setLocationPuck(createDefault2DPuck(withBearing = false))
-                .setEnabled(true)
-                .build()
-        )
+            }
+        }else{
+            MapboxMap(
+                modifier = Modifier.fillMaxSize(),
+                mapInitOptionsFactory = { context ->
+                    MapInitOptions(
+                        context = context,
+                        styleUri = if(deviceTheme == "Dark") darkThemeMap else lightThemeMap,
+                    )
+                },
+                mapViewportState = MapViewportState().apply {
+                    setCameraOptions {
+                        zoom(11.0)
+                        center(Point.fromLngLat(0.62, 41.6167))
+                        pitch(0.0)
+                        bearing(0.0)
+                    }
+                    style{
+                        Style.DARK
+                    }
+                },
+                locationComponentSettings = DefaultSettingsProvider.defaultLocationComponentSettings(
+                    context = LocalContext.current
+                ).toBuilder()
+                    .setLocationPuck(createDefault2DPuck(withBearing = false))
+                    .setEnabled(true)
+                    .build()
+            )
+        }
+
     }
 
 }

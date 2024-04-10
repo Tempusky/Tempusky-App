@@ -23,11 +23,6 @@ fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel) {
         bottombarVisible = it
     }
 
-    var _isLoading by remember{ mutableStateOf(true) }
-    mainViewModel.isLoading.observe(mainContext) {
-        _isLoading = it
-    }
-
     Scaffold(
         bottomBar = {
             if(bottombarVisible){
