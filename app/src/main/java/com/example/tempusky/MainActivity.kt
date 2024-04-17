@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -25,7 +24,6 @@ import com.example.tempusky.ui.theme.TempuskyTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
-import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : ComponentActivity() {
 
@@ -120,12 +118,6 @@ class MainActivity : ComponentActivity() {
         if (mRequestingLocationUpdates)
             stopLocationUpdates()
     }
-
-    public override fun onSaveInstanceState(savedInstanceState: Bundle) {
-        savedInstanceState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mRequestingLocationUpdates)
-        super.onSaveInstanceState(savedInstanceState)
-    }
-
 
     private fun checkPermissions(): Boolean {
         val permissionFineState = ActivityCompat.checkSelfPermission(
