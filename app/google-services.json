@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "76632527149",
+    "project_id": "tempusky",
+    "storage_bucket": "tempusky.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76632527149:android:4c938522c57f1292b003a4",
+        "android_client_info": {
+          "package_name": "com.example.tempusky"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlRmrtcmbkMFZTidZz-SQp0P_IeEGhGdc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
