@@ -7,6 +7,7 @@ import android.location.Location
 import android.util.Log
 import com.example.tempusky.core.helpers.SensorsDataHelper
 
+// TO DELETE
 class LocationUpdateReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "LocationUpdateReceiver onReceive")

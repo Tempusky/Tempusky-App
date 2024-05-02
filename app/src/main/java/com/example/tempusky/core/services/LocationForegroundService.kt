@@ -29,7 +29,7 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.Priority
 
-
+// TO DELETE
 class LocationForegroundService : Service() {
 
     private lateinit var mLocationRequest: LocationRequest
