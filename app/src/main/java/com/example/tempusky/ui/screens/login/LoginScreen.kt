@@ -1,18 +1,14 @@
 package com.example.tempusky.ui.screens.login
 
 import android.Manifest
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -25,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,10 +38,14 @@ import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
+    val auth: FirebaseAuth = Firebase.auth
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(false) }
@@ -139,13 +138,27 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
 
                     Button(
                         onClick = {
-                            MainActivity.locationPermissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                )
-                            );
-                            navController.navigate(NavigationRoutes.HOME); mainViewModel.setBottomBarVisible(true) },
+                            auth.signInWithEmailAndPassword(email, password)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        MainActivity.locationPermissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
+                                        )
+                                        mainViewModel.setBottomBarVisible(true)
+                                        navController.navigate(NavigationRoutes.HOME)
+                                    } else {
+                                        // If sign in fails, display a message to the user.
+                                        Toast.makeText(
+                                            MainActivity.context,
+                                            "Authentication failed.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                        },
                         enabled = isButtonEnabled,
                         shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(
