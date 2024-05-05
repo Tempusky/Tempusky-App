@@ -1,5 +1,6 @@
 package com.example.tempusky
 
+import DataCollectionWorker
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,6 +16,8 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.tempusky.core.services.LocationForegroundService
 import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.data.SettingsDataStore
@@ -24,6 +27,7 @@ import com.example.tempusky.ui.theme.TempuskyTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
 
@@ -90,6 +94,9 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
+        val dataWorkRequest = PeriodicWorkRequestBuilder<DataCollectionWorker>(10, TimeUnit.SECONDS)
+            .build()
+        WorkManager.getInstance(applicationContext).enqueue(dataWorkRequest)
         Log.d(TAG, "onStart: called")
     }
 

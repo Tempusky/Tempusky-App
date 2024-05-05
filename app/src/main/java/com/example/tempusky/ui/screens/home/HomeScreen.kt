@@ -41,9 +41,7 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
     mainViewModel.appTheme.observe(context) {
         deviceTheme = it
     }
-    LaunchedEffect(Unit){
-        Log.d("HomeScreen", "Saved theme:${deviceTheme}")
-    }
+
     key(deviceTheme){
         if(requestingPermissions){
             Column(modifier =Modifier.fillMaxSize()){
