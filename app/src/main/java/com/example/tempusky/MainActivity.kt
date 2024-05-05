@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.tempusky.core.services.LocationForegroundService
@@ -94,9 +95,10 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
-        val dataWorkRequest = PeriodicWorkRequestBuilder<DataCollectionWorker>(10, TimeUnit.SECONDS)
+        val dataWorkRequest = PeriodicWorkRequestBuilder<DataCollectionWorker>(30, TimeUnit.MINUTES)
             .build()
-        WorkManager.getInstance(applicationContext).enqueue(dataWorkRequest)
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork( "DataCollectorWorker",
+            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,dataWorkRequest)
         Log.d(TAG, "onStart: called")
     }
 

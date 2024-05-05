@@ -29,7 +29,7 @@ class DataCollectionWorker(
                 Result.failure()
             }
         } else {
-            // Properly handle case where permission is not granted
+            Log.d("DataCollectionWorker", "Location permission not granted")
             Result.failure()
         }
     }
