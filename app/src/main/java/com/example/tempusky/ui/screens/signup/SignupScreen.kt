@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.tempusky.MainViewModel
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -45,7 +46,7 @@ import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignupScreen(navController: NavController) {
+fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
     val auth: FirebaseAuth = Firebase.auth
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
@@ -234,6 +235,7 @@ fun SignupScreen(navController: NavController) {
                                                       )
                                                   )
                                               navController.navigate(NavigationRoutes.HOME)
+                                              mainViewModel.setBottomBarVisible(true)
                                           } else {
                                               // If sign up fails, display a message to the user.
                                               Toast.makeText(context, "Authentication failed, try again later.", Toast.LENGTH_SHORT).show()
