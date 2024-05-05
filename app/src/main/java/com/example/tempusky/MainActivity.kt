@@ -1,6 +1,7 @@
 package com.example.tempusky
 
 import android.Manifest
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -18,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.tempusky.core.broadcastReceivers.LocationUpdatesReceiver
 import com.example.tempusky.core.services.LocationForegroundService
 import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.data.SettingsDataStore
@@ -25,6 +27,7 @@ import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.ui.MainScreen
 import com.example.tempusky.ui.theme.TempuskyTheme
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
 import java.util.concurrent.TimeUnit
@@ -88,6 +91,27 @@ class MainActivity : ComponentActivity() {
                        Log.i(TAG, "User denied location access, updates not requested, starting location updates.")
                 }
             }
+        }
+        startLocationUpdates()
+    }
+
+    private fun startLocationUpdates() {
+        val locationRequest = LocationRequest.create().apply {
+            interval = UPDATE_INTERVAL_IN_MILLISECONDS
+            fastestInterval = FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+        val intent = Intent(applicationContext, LocationUpdatesReceiver::class.java)
+        intent.action = "com.google.android.gms.location.example.tempusky.action.PROCESS_UPDATES"
+        val pendingIntent = PendingIntent.getBroadcast(
+            applicationContext,
+            0,
+            intent,
+            PendingIntent.FLAG_MUTABLE
+        )
+
+        if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mFusedLocationClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
     }
 
@@ -165,7 +189,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         private const val REQUEST_CHECK_SETTINGS = 0x1
-        private const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 100  // 10000
+        private const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 10000  // 10000
         private const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2
         private const val KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates"

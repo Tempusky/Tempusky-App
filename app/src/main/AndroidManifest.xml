@@ -40,7 +40,14 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
-        <receiver android:name=".core.broadcastReceivers.LocationUpdateReceiver" />
+        <receiver android:name=".core.broadcastReceivers.LocationUpdatesReceiver"
+            android:exported="true"
+            android:permission="TODO"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="com.google.android.gms.location.example.tempusky.action.PROCESS_UPDATES" />
+            </intent-filter>
+        </receiver>
         <receiver android:name=".core.broadcastReceivers.EnvironmentSensorsReceiver" />
     </application>
 
