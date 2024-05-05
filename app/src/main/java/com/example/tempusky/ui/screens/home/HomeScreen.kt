@@ -1,7 +1,9 @@
 package com.example.tempusky.ui.screens.home
 
 import android.Manifest
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +30,7 @@ import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(MapboxExperimental::class)
 @Composable
 fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
@@ -49,7 +52,8 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
                 Button(onClick = { MainActivity.locationPermissionLauncher.launch(
                     arrayOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
                     )
                 ); }) {
                     Text(text = "Accept permissions")

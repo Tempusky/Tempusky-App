@@ -66,18 +66,33 @@ class MainActivity : ComponentActivity() {
                     // Precise location access granted.
                     mRequestingLocationUpdates = true
                     mainViewModel.setLoading(false)
-                    Log.i(TAG, "User agreed to make precise required location settings changes, updates requested, starting location updates.")
+                    Log.i(
+                        TAG,
+                        "User agreed to make precise required location settings changes, updates requested, starting location updates."
+                    )
                     val foregroundIntent = Intent(this, LocationForegroundService::class.java)
                     startForegroundService(foregroundIntent)
                 }
+
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                     // Only approximate location access granted.
                     mRequestingLocationUpdates = true
                     mainViewModel.setLoading(false)
-                    Log.i(TAG, "User agreed to make coarse required location settings changes, updates requested, starting location updates.")
+                    Log.i(
+                        TAG,
+                        "User agreed to make coarse required location settings changes, updates requested, starting location updates."
+                    )
                     val foregroundIntent = Intent(this, LocationForegroundService::class.java)
                     startForegroundService(foregroundIntent)
-                } else -> {
+                } permissions.getOrDefault(Manifest.permission.ACCESS_BACKGROUND_LOCATION, false) -> {
+                    // Background location access granted.
+                    mRequestingLocationUpdates = true
+                    mainViewModel.setLoading(false)
+                    Log.i(
+                        TAG,
+                        "User agreed to make background required location settings changes, updates requested, starting location updates."
+                    )
+                }else -> {
                     if (mRequestingLocationUpdates && checkPermissions()) {
                         Log.d(TAG, "onStart: requesting location updates")
                         requestPermissions()
@@ -92,6 +107,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION), 56)
+        }
+
         startLocationUpdates()
     }
 
@@ -105,12 +124,13 @@ class MainActivity : ComponentActivity() {
         intent.action = "com.google.android.gms.location.example.tempusky.action.PROCESS_UPDATES"
         val pendingIntent = PendingIntent.getBroadcast(
             applicationContext,
-            0,
+            3,
             intent,
             PendingIntent.FLAG_MUTABLE
         )
 
         if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, "startLocationUpdates: requesting location updates")
             mFusedLocationClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
     }
@@ -156,8 +176,13 @@ class MainActivity : ComponentActivity() {
             this,
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
+        val permissionBackground = ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )
 
-        return ((permissionFineState == PackageManager.PERMISSION_GRANTED) || (permissionCoarseState == PackageManager.PERMISSION_GRANTED))
+
+        return ((permissionFineState == PackageManager.PERMISSION_GRANTED) || (permissionCoarseState == PackageManager.PERMISSION_GRANTED) || (permissionBackground == PackageManager.PERMISSION_GRANTED))
     }
 
     private fun requestPermissions() {
@@ -167,6 +192,9 @@ class MainActivity : ComponentActivity() {
         ) || ActivityCompat.shouldShowRequestPermissionRationale(
             this,
             Manifest.permission.ACCESS_COARSE_LOCATION
+        ) || ActivityCompat.shouldShowRequestPermissionRationale(
+            this,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
         )
 
         if (shouldProvideRationale) {
@@ -178,7 +206,8 @@ class MainActivity : ComponentActivity() {
 
             locationPermissionLauncher.launch(arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION))
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION))
         }
     }
 
