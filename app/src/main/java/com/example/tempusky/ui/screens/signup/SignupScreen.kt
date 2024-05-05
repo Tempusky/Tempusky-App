@@ -1,5 +1,6 @@
 package com.example.tempusky.ui.screens.signup
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,16 +31,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignupScreen(navController: NavController) {
+    val auth: FirebaseAuth = Firebase.auth
+    val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(false) }
@@ -213,7 +221,26 @@ fun SignupScreen(navController: NavController) {
                     }
 
                     Button(
-                        onClick = { navController.navigate(NavigationRoutes.HOME) },
+                        onClick = {
+                                  auth.createUserWithEmailAndPassword(email, password)
+                                      .addOnCompleteListener { task ->
+                                          if (task.isSuccessful) {
+                                              // Sign up success, create user document in db and navigate to home screen
+                                              val db = Firebase.firestore
+                                              db.collection("users").document("${auth.currentUser?.uid}")
+                                                  .set(
+                                                      hashMapOf(
+                                                          "username" to userName
+                                                      )
+                                                  )
+                                              navController.navigate(NavigationRoutes.HOME)
+                                          } else {
+                                              // If sign up fails, display a message to the user.
+                                              Toast.makeText(context, "Authentication failed, try again later.", Toast.LENGTH_SHORT).show()
+                                          }
+                                        }
+
+                        },
                         enabled = isButtonEnabled,
                         shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(
