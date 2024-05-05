@@ -1,6 +1,5 @@
 package com.example.tempusky
 
-import DataCollectionWorker
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -95,10 +94,6 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
-        val dataWorkRequest = PeriodicWorkRequestBuilder<DataCollectionWorker>(30, TimeUnit.MINUTES)
-            .build()
-        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork( "DataCollectorWorker",
-            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,dataWorkRequest)
         Log.d(TAG, "onStart: called")
     }
 
