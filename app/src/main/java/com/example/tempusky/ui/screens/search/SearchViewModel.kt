@@ -12,4 +12,9 @@ class SearchViewModel : ViewModel() {
     fun setSearchDataResult(data: List<SearchDataResult>){
         _searchDatResult.value = data
     }
+
+    fun updateSearchDataResult(userInput: String){
+        //Logic to search for data and update list and filter from data already stored
+    }
+
 }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,14 +26,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tempusky.MainActivity
 import com.example.tempusky.data.SearchDataResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(searchViewModel: SearchViewModel) {
+fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
 
     var inputData by remember { mutableStateOf("") }
     var results by remember { mutableStateOf(listOf<SearchDataResult>())}
+    searchViewModel.searchDataResult.observe(context) {
+        results = it
+    }
+
     Box(modifier = Modifier
         .fillMaxHeight(0.93f)
         .fillMaxWidth()){
@@ -65,6 +69,7 @@ fun SearchScreen(searchViewModel: SearchViewModel) {
                 },
                 onValueChange = {
                     inputData = it
+                    searchViewModel.updateSearchDataResult(inputData)
                 },
                 placeholder = { Text(text = "Enter the location") },
             )

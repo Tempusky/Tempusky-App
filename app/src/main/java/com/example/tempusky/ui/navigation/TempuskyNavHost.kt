@@ -17,11 +17,12 @@ import com.example.tempusky.ui.screens.home.HomeScreen
 import com.example.tempusky.ui.screens.login.LoginScreen
 import com.example.tempusky.ui.screens.profile.ProfileScreen
 import com.example.tempusky.ui.screens.search.SearchScreen
+import com.example.tempusky.ui.screens.search.SearchViewModel
 import com.example.tempusky.ui.screens.settings.SettingsScreen
 import com.example.tempusky.ui.screens.signup.SignupScreen
 
 @Composable
-fun TempuskyNavHost(context: MainActivity, navController: NavController, mainViewModel:  MainViewModel) {
+fun TempuskyNavHost(context: MainActivity, navController: NavController, mainViewModel:  MainViewModel, searchViewModel: SearchViewModel) {
     NavHost(startDestination = NavigationRoutes.LOGIN, navController = navController as NavHostController) {
         composable(NavigationRoutes.LOGIN){
             LoginScreen(navController = navController, mainViewModel = mainViewModel)
@@ -190,7 +191,7 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                     else -> null
                 }
             }){
-            SearchScreen()
+            SearchScreen(context, searchViewModel = searchViewModel)
         }
     }
 }
