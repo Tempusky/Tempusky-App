@@ -8,6 +8,9 @@ object SettingsValues {
     const val DEFAULT_THEME = "Auto"
     const val WIFI_NETWORK = "Wi-Fi"
     const val DEFAULT_NETWORK = "Wi-Fi n Mobile Data"
+    const val DEFAULT_TEMPERATURE = true
+    const val DEFAULT_PRESSURE = true
+    const val DEFAULT_HUMIDITY = true
     val THEMES = listOf(DARK_THEME, LIGHT_THEME, DEFAULT_THEME)
     val NETWORKS = listOf(WIFI_NETWORK, DEFAULT_NETWORK)
 }

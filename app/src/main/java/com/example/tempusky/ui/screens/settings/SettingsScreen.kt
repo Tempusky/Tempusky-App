@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
@@ -35,6 +36,10 @@ fun SettingsScreen(mainViewModel: MainViewModel) {
     val savedLanguage = dataStore.getLanguage.collectAsState(initial = SettingsValues.DEFAULT_LANGUAGE)
     val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
     val savedNetwork = dataStore.getNetwork.collectAsState(initial = SettingsValues.DEFAULT_NETWORK)
+    val savedTemperatureEnabled = dataStore.getTemperature.collectAsState(initial = SettingsValues.DEFAULT_TEMPERATURE)
+    val savedPressureEnabled = dataStore.getPressure.collectAsState(initial = SettingsValues.DEFAULT_PRESSURE)
+    val savedHumidityEnabled = dataStore.getHumidity.collectAsState(initial = SettingsValues.DEFAULT_HUMIDITY)
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -45,11 +50,12 @@ fun SettingsScreen(mainViewModel: MainViewModel) {
                 .fillMaxHeight()
                 .padding(16.dp)
         ) {
+            Text("General", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 30.sp)
             Row (
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Language", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Text("Language", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 LanguageSelector(
                     languages = SettingsValues.LANGUAGES,
@@ -66,7 +72,7 @@ fun SettingsScreen(mainViewModel: MainViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Theme", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Text("Theme", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 ThemeSelector(
                     themes = SettingsValues.THEMES,
@@ -85,7 +91,7 @@ fun SettingsScreen(mainViewModel: MainViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Network", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                Text("Network", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 NetworkSelector(
                     networks = SettingsValues.NETWORKS,
@@ -96,6 +102,17 @@ fun SettingsScreen(mainViewModel: MainViewModel) {
                         }
                     }
                 )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Sensors Data To Send", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 30.sp)
+            SensorSwitch("Temperature", savedTemperatureEnabled.value) {
+                scope.launch { dataStore.setTemperatureEnabled(it) }
+            }
+            SensorSwitch("Humidity", savedHumidityEnabled.value) {
+                scope.launch { dataStore.setHumidityEnabled(it) }
+            }
+            SensorSwitch("Pressure", savedPressureEnabled.value) {
+                scope.launch { dataStore.setPressureEnabled(it) }
             }
         }
     }
@@ -130,6 +147,23 @@ fun LanguageSelector(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun SensorSwitch(sensorName: String, isEnabled: Boolean, onToggle: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("$sensorName: ", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
+        Spacer(modifier = Modifier.weight(1f))
+        androidx.compose.material3.Switch(
+            checked = isEnabled,
+            onCheckedChange = { onToggle(it) }
+        )
     }
 }
 
