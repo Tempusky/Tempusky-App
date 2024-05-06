@@ -84,7 +84,7 @@ fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
                 {
                     Text(text = "Data received near you:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
                 }
-                items(20)
+                items(results.size)
                 {
                     DataReceivedItem()
                 }

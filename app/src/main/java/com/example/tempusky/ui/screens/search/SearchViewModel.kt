@@ -15,6 +15,10 @@ class SearchViewModel : ViewModel() {
 
     fun updateSearchDataResult(userInput: String){
         //Logic to search for data and update list and filter from data already stored
+        val tempData = SearchDataResult("User", "Location", 25.0, 50.0, 1000.0, "2021-09-01")
+        val tempList = _searchDatResult.value?.toMutableList() ?: mutableListOf()
+        tempList.add(tempData)
+        setSearchDataResult(tempList)
     }
 
 }
