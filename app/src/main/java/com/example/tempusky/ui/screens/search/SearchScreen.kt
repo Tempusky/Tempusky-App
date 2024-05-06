@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,6 +73,11 @@ fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
                     searchViewModel.updateSearchDataResult(inputData)
                 },
                 placeholder = { Text(text = "Enter the location") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                )
             )
             LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
                 item(1)
