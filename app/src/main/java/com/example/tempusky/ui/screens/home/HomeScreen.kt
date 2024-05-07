@@ -5,12 +5,20 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -46,7 +54,7 @@ import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 
-@OptIn(MapboxExperimental::class)
+@OptIn(MapboxExperimental::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
     val darkThemeMap = "mapbox://styles/faysalbadaoui/cluikavl200jr01r2hsgu2ejc"
@@ -60,8 +68,14 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
         MapPointData("25.8", Point.fromLngLat(0.6430, 41.6755), "Torrefarrera", "156 Values available")
     )
     var selectedPoint by remember { mutableStateOf<MapPointData?>(null) }
-
-
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    mainViewModel.selectedMapData.observe(context) {
+        selectedPoint = it
+    }
+    mainViewModel.showBottomSheet.observe(context) {
+        showBottomSheet = it
+    }
     mainViewModel.isLoading.observe(context) {
         requestingPermissions = it
     }
@@ -118,7 +132,30 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
                             allowOverlap(false)
                         }
                     ) {
-                        MapDataObject(data = location)
+                        MapDataObject(data = location, viewModel = mainViewModel)
+                    }
+                }
+            }
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    sheetState = sheetState
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp), contentAlignment = Alignment.Center){
+                            Column {
+                                Text(text = selectedPoint?.title ?: "No data selected", fontSize = 40.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                                Text(text = selectedPoint?.description ?: "No description available", fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground)
+                                Row {
+                                    Icon(imageVector = Icons.Default.DateRange, contentDescription = "date", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                    Text(text = selectedPoint?.id + "ºC", fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -128,10 +165,12 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
 }
 
 @Composable
-fun MapDataObject(data: MapPointData){
+fun MapDataObject(data: MapPointData, viewModel: MainViewModel){
     Box(modifier = Modifier
         .size(40.dp)
-        .background(MaterialTheme.colorScheme.background, RoundedCornerShape(10.dp)).border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+        .clickable { viewModel.setSelectedMapData(data) }
+        .background(MaterialTheme.colorScheme.background, RoundedCornerShape(10.dp))
+        .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
         Text(text = data.id, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
     }
 }
