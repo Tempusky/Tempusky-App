@@ -35,12 +35,6 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".core.services.LocationForegroundService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="location" />
-
         <receiver android:name=".core.broadcastReceivers.LocationUpdatesReceiver"
             android:exported="true"
             android:permission="TODO"

@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -12,15 +11,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import com.example.tempusky.core.broadcastReceivers.LocationUpdatesReceiver
-import com.example.tempusky.core.services.LocationForegroundService
 import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
@@ -30,7 +24,6 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
-import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
 
@@ -39,7 +32,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var dataStore : SettingsDataStore
     private var settings = false
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = SettingsDataStore(this)
@@ -70,8 +62,7 @@ class MainActivity : ComponentActivity() {
                         TAG,
                         "User agreed to make precise required location settings changes, updates requested, starting location updates."
                     )
-                    val foregroundIntent = Intent(this, LocationForegroundService::class.java)
-                    startForegroundService(foregroundIntent)
+
                 }
 
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
@@ -82,8 +73,7 @@ class MainActivity : ComponentActivity() {
                         TAG,
                         "User agreed to make coarse required location settings changes, updates requested, starting location updates."
                     )
-                    val foregroundIntent = Intent(this, LocationForegroundService::class.java)
-                    startForegroundService(foregroundIntent)
+
                 } permissions.getOrDefault(Manifest.permission.ACCESS_BACKGROUND_LOCATION, false) -> {
                     // Background location access granted.
                     mRequestingLocationUpdates = true
@@ -96,8 +86,7 @@ class MainActivity : ComponentActivity() {
                     if (mRequestingLocationUpdates && checkPermissions()) {
                         Log.d(TAG, "onStart: requesting location updates")
                         requestPermissions()
-                        val foregroundIntent = Intent(this, LocationForegroundService::class.java)
-                        startForegroundService(foregroundIntent)
+
                     } else if (!checkPermissions() && !settings) {
                         Log.d(TAG, "onStart: requesting permissions")
                         requestPermissions()
@@ -135,36 +124,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "onStart: called")
-    }
-
-    private fun stopLocationUpdates() {
-        if (!mRequestingLocationUpdates) {
-            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.")
-            return
-        }
-        mRequestingLocationUpdates = false
-        stopService(Intent(this, LocationForegroundService::class.java))
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    public override fun onResume() {
-        super.onResume()
-        if (checkPermissions()) {
-            val foregroundIntent = Intent(this, LocationForegroundService::class.java)
-            startForegroundService(foregroundIntent)
-        }
-
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        if (mRequestingLocationUpdates)
-            stopLocationUpdates()
     }
 
     private fun checkPermissions(): Boolean {
