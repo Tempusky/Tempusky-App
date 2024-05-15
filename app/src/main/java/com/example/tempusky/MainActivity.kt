@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
                         TAG,
                         "User agreed to make precise required location settings changes, updates requested, starting location updates."
                     )
-
+                    startLocationUpdates()
                 }
 
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
@@ -73,7 +73,7 @@ class MainActivity : ComponentActivity() {
                         TAG,
                         "User agreed to make coarse required location settings changes, updates requested, starting location updates."
                     )
-
+                    startLocationUpdates()
                 } permissions.getOrDefault(Manifest.permission.ACCESS_BACKGROUND_LOCATION, false) -> {
                     // Background location access granted.
                     mRequestingLocationUpdates = true
@@ -82,11 +82,12 @@ class MainActivity : ComponentActivity() {
                         TAG,
                         "User agreed to make background required location settings changes, updates requested, starting location updates."
                     )
+                    startLocationUpdates()
                 }else -> {
                     if (mRequestingLocationUpdates && checkPermissions()) {
                         Log.d(TAG, "onStart: requesting location updates")
                         requestPermissions()
-
+                        startLocationUpdates()
                     } else if (!checkPermissions() && !settings) {
                         Log.d(TAG, "onStart: requesting permissions")
                         requestPermissions()
@@ -99,8 +100,6 @@ class MainActivity : ComponentActivity() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION), 56)
         }
-
-        startLocationUpdates()
     }
 
     private fun startLocationUpdates() {
