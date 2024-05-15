@@ -48,6 +48,7 @@ import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -86,8 +87,11 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
     mainViewModel.appTheme.observe(context) {
         deviceTheme = it
     }
-    LaunchedEffect(Unit){
-        Log.d("HomeScreen", "Saved theme:${deviceTheme}")
+    DisposableEffect(Unit){
+        //Hide bottom sheet when the screen is disposed(exited)
+        onDispose {
+            mainViewModel.showBottomSheet(false)
+        }
     }
     key(deviceTheme){
         if(requestingPermissions){
