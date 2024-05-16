@@ -21,6 +21,7 @@ import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.ui.MainScreen
+import com.example.tempusky.ui.screens.search.SearchViewModel
 import com.example.tempusky.ui.theme.TempuskyTheme
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -31,6 +32,7 @@ import com.google.android.gms.location.SettingsClient
 class MainActivity : ComponentActivity() {
 
     val mainViewModel : MainViewModel by viewModels()
+    private val searchViewModel : SearchViewModel by viewModels()
     val locatioViewModel: LocationViewModel by viewModels()
     private lateinit var dataStore : SettingsDataStore
     private var settings = false
@@ -44,7 +46,7 @@ class MainActivity : ComponentActivity() {
             val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")
             TempuskyTheme(mainViewModel, if(savedTheme.value == SettingsValues.DEFAULT_THEME) isSystemInDarkTheme() else savedTheme.value == SettingsValues.DARK_THEME) {
-                MainScreen(this, mainViewModel)
+                MainScreen(this, mainViewModel, searchViewModel = searchViewModel)
             }
         }
 

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
@@ -27,11 +28,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tempusky.MainActivity
+import com.example.tempusky.data.SearchDataResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen() {
+fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
+
     var inputData by remember { mutableStateOf("") }
+    var results by remember { mutableStateOf(listOf<SearchDataResult>())}
+    searchViewModel.searchDataResult.observe(context) {
+        results = it
+    }
 
     Box(modifier = Modifier
         .fillMaxHeight(0.93f)
@@ -63,15 +71,21 @@ fun SearchScreen() {
                 },
                 onValueChange = {
                     inputData = it
+                    searchViewModel.updateSearchDataResult(inputData)
                 },
                 placeholder = { Text(text = "Enter the location") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                )
             )
             LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
                 item(1)
                 {
                     Text(text = "Data received near you:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
                 }
-                items(20)
+                items(results.size)
                 {
                     DataReceivedItem()
                 }
