@@ -14,7 +14,6 @@ class LocationUpdatesReceiver: BroadcastReceiver() {
         Log.d(TAG, "onReceive() context:$context, intent:$intent")
 
         if (intent.action == ACTION_PROCESS_UPDATES) {
-
             var latitude = 0.0
             var longitude = 0.0
             LocationResult.extractResult(intent).let { locationResult ->
@@ -25,8 +24,7 @@ class LocationUpdatesReceiver: BroadcastReceiver() {
                 if (locations != null) {
                     if (locations.isNotEmpty()) {
                         Log.d(TAG, "Location Data: $latitude, $longitude")
-                        // Call method to send location data to server
-                        //startEnvironmentSensorsService(context, latitude, longitude)
+                        startEnvironmentSensorsService(context, latitude, longitude)
                     }
                 }
             }

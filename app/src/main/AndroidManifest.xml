@@ -19,10 +19,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tempusky"
         tools:targetApi="31">
-        <service
-            android:name=".core.services.EnvironmentSensorsService"
-            android:enabled="true"
-            android:exported="true"></service>
 
         <activity
             android:name=".MainActivity"
@@ -41,6 +37,12 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
+        <service
+            android:name=".core.services.EnvironmentSensorsService"
+            android:foregroundServiceType="location"
+            android:exported="false">
+        </service>
+
         <receiver android:name=".core.broadcastReceivers.LocationUpdatesReceiver"
             android:exported="true"
             android:permission="TODO"
@@ -49,7 +51,6 @@
                 <action android:name="com.google.android.gms.location.example.tempusky.action.PROCESS_UPDATES" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".core.broadcastReceivers.EnvironmentSensorsReceiver" />
     </application>
 
 </manifest>
