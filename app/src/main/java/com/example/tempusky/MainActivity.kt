@@ -21,6 +21,7 @@ import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.ui.MainScreen
 import com.example.tempusky.ui.theme.TempuskyTheme
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
@@ -32,7 +33,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var dataStore : SettingsDataStore
     private var settings = false
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = SettingsDataStore(this)
@@ -85,6 +85,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestIdToken(getString(R.string.web_client_id))
+            .requestProfile()
+            .build()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -174,5 +180,6 @@ class MainActivity : ComponentActivity() {
         lateinit var context : MainActivity
         lateinit var locationPermissionLauncher: ActivityResultLauncher<Array<String>>
         var mRequestingLocationUpdates: Boolean = false
+        lateinit var gso : GoogleSignInOptions
     }
 }
