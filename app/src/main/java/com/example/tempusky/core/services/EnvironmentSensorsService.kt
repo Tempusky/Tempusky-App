@@ -16,12 +16,14 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.tempusky.R
 import com.example.tempusky.core.helpers.SensorsDataHelper
+import kotlin.random.Random
 
 class EnvironmentSensorsService : Service(), SensorEventListener {
 
     companion object {
         private const val TAG = "EnvironmentSensorsService"
         private const val CHANNEL_ID = "EnvironmentSensorsServiceChannel"
+        private const val NOTIFICATION_ID = 1
         private lateinit var intent: Intent
     }
 
@@ -29,6 +31,9 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     private var temperatureUpdated: Boolean? = null
     private var pressureUpdated: Boolean? = null
     private var humidityUpdated: Boolean? = null
+    private var temperatureReceived = 0.0f
+    private var pressureReceived = 0.0f
+    private var humidityReceived = 0.0f
 
     override fun onCreate() {
         super.onCreate()
@@ -50,22 +55,22 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     private fun registerSensors(sensors: Triple<Sensor?, Sensor?, Sensor?>) {
         sensors.first?.also {
             temperatureUpdated = false
-            sensorManager?.registerListener(this, it, 10000)
+            sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
         sensors.second?.also {
             pressureUpdated = false
-            sensorManager?.registerListener(this, it, 10000)
+            sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
         sensors.third?.also {
             humidityUpdated = false
-            sensorManager?.registerListener(this, it, 10000)
+            sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Companion.intent = intent!!
-        val notification = buildNotification()
-        startForeground(1, notification)
+        val notification = buildNotification("Started Environment Sensors Service")
+        startForeground(NOTIFICATION_ID, notification)
         val sensors = getSensors()
         registerSensors(sensors)
         return START_STICKY
@@ -92,18 +97,21 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             when (it.sensor.type) {
                 Sensor.TYPE_AMBIENT_TEMPERATURE -> {
                     val temperatureCelsius = it.values[0]
+                    temperatureReceived = temperatureCelsius
                     Log.d(TAG, "Temperature: $temperatureCelsius")
                     SensorsDataHelper.updateTemperatureData(temperatureCelsius)
                     temperatureUpdated = true
                 }
                 Sensor.TYPE_PRESSURE -> {
                     val pressure = it.values[0]
+                    pressureReceived = pressure
                     Log.d(TAG, "Pressure: $pressure")
                     SensorsDataHelper.updatePressureData(pressure)
                     pressureUpdated = true
                 }
                 Sensor.TYPE_RELATIVE_HUMIDITY -> {
                     val humidity = it.values[0]
+                    humidityReceived = humidity
                     Log.d(TAG, "Humidity: $humidity")
                     SensorsDataHelper.updateHumidityData(humidity)
                     humidityUpdated = true
@@ -112,23 +120,23 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                     Log.d(TAG, "Unknown sensor type")
                 }
             }
-            if (temperatureUpdated != false && pressureUpdated != false && humidityUpdated != false) {
+            if (temperatureUpdated == true && pressureUpdated == true && humidityUpdated == true) {
                 sensorManager?.unregisterListener(this)
                 Log.d(TAG, "All sensors updated")
                 val latitude = intent.getDoubleExtra("latitude", 0.0)
                 val longitude = intent.getDoubleExtra("longitude", 0.0)
-                Log.d(TAG, "Location in Environemt sensors Service: $latitude, $longitude")
-                // UPload to cloud
-                buildNotification()
-                stopSelf()
+                Log.d(TAG, "Location in Environment Sensors Service: $latitude, $longitude")
+                val updatedNotification = buildNotification("Sensors data updated and uploaded $latitude, $longitude, $temperatureReceived, $pressureReceived, $humidityReceived")
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(NOTIFICATION_ID, updatedNotification)
             }
         }
     }
 
-    private fun buildNotification(): Notification {
+    private fun buildNotification(text: String): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Environment Sensors Service")
-            .setContentText("Service is running in the background")
+            .setContentText(text)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .build()
     }

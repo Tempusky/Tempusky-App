@@ -32,12 +32,6 @@
         </activity>
 
         <service
-            android:name=".core.services.LocationForegroundService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="location" />
-
-        <service
             android:name=".core.services.EnvironmentSensorsService"
             android:foregroundServiceType="location"
             android:exported="false">
@@ -45,7 +39,6 @@
 
         <receiver android:name=".core.broadcastReceivers.LocationUpdatesReceiver"
             android:exported="true"
-            android:permission="TODO"
             tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.google.android.gms.location.example.tempusky.action.PROCESS_UPDATES" />

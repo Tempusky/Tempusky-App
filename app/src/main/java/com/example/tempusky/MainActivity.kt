@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -14,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.tempusky.core.broadcastReceivers.LocationUpdatesReceiver
 import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.data.SettingsDataStore
@@ -97,6 +99,22 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        notificationsPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            permissions.entries.forEach {
+                val permissionName = it.key
+                val isGranted = it.value
+                if (isGranted) {
+                    Log.d("Permissions", "$permissionName granted")
+                } else {
+                    Log.d("Permissions", "$permissionName denied")
+                }
+            }
+        }
+
+        requestPermissions()
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION), 56)
         }
@@ -158,6 +176,31 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.ACCESS_BACKGROUND_LOCATION
         )
 
+        val permissionsToRequest = mutableListOf<String>()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        // Add other permissions if needed, e.g., location
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            notificationsPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+        }
+
         if (shouldProvideRationale) {
             Log.i(TAG, "Displaying permission rationale to provide additional context.")
            //Show snackbar
@@ -191,6 +234,7 @@ class MainActivity : ComponentActivity() {
         lateinit var mSettingsClient: SettingsClient
         lateinit var context : MainActivity
         lateinit var locationPermissionLauncher: ActivityResultLauncher<Array<String>>
+        lateinit var notificationsPermissionLauncher: ActivityResultLauncher<Array<String>>
         var mRequestingLocationUpdates: Boolean = false
     }
 }
