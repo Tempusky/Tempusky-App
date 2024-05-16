@@ -8,12 +8,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -40,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -49,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
+import com.example.tempusky.R
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
@@ -186,8 +191,27 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                     }
                 )
             }
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    onClick = {
+                        val signInIntent = GoogleSignIn.getClient(MainActivity.context, MainActivity.gso).signInIntent
+                        googleSignInLauncher.launch(signInIntent)
+                    },
+                    shape = MaterialTheme.shapes.medium,
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground,
+                        containerColor = Color.Transparent),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "CONTINUE WITH", fontSize = 20.sp, modifier=Modifier.padding(end = 10.dp))
+                        Image(painter = painterResource(id = R.drawable.googlecon), contentDescription = "Google Icon", modifier = Modifier.size(30.dp))
+                    }
+                }
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceAround) {
                     OutlinedButton(onClick = { navController.navigate(NavigationRoutes.SIGNUP) },
                         border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                         colors = ButtonDefaults.buttonColors(
@@ -228,25 +252,6 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                     ) {
                         Text(text = "LOGIN", fontSize = 20.sp)
                     }
-                }
-            }
-            Button(
-                modifier = Modifier.fillMaxWidth(0.8f),
-                onClick = {
-                    val signInIntent = GoogleSignIn.getClient(MainActivity.context, MainActivity.gso).signInIntent
-                    googleSignInLauncher.launch(signInIntent)
-                },
-                shape = MaterialTheme.shapes.medium,
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    containerColor = MaterialTheme.colorScheme.secondary),
-            ) {
-                Row {
-                    Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = "googleIcon"
-                    )
-                    Text(text = "LOGIN WITH GOOGLE", fontSize = 20.sp)
                 }
             }
         }
