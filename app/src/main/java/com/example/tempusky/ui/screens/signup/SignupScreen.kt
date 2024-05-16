@@ -14,10 +14,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -27,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -54,7 +60,8 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
     var isButtonEnabled by remember { mutableStateOf(false) }
     var confirmPassword by remember { mutableStateOf("") }
     var userName by remember { mutableStateOf("") }
-
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var passwordVisible1 by rememberSaveable { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -111,7 +118,9 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     },
                     label = { Text("Email address") },
                     placeholder = { Text(text = "Enter your e-mail") },
-                    modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .fillMaxWidth(),
                 )
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -141,7 +150,9 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     },
                     label = { Text("Username") },
                     placeholder = { Text(text = "Enter your Username") },
-                    modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .fillMaxWidth(),
                 )
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -154,6 +165,7 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
                         focusedPlaceholderColor = Color.LightGray
                     ),
+                    visualTransformation = if (passwordVisible1) VisualTransformation.None else PasswordVisualTransformation(),
                     value = password,
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Next
@@ -171,7 +183,21 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     },
                     label = { Text(text = "Password") },
                     placeholder = { Text(text = "Enter your password") },
-                    modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .fillMaxWidth(),
+                    trailingIcon = {
+                        val image = if (passwordVisible1)
+                            Icons.Filled.Visibility
+                        else Icons.Filled.VisibilityOff
+
+                        // Please provide localized description for accessibility services
+                        val description = if (passwordVisible1) "Hide password" else "Show password"
+
+                        IconButton(onClick = {passwordVisible1 = !passwordVisible1}){
+                            Icon(imageVector  = image, description)
+                        }
+                    },
                 )
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -188,6 +214,7 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Done
                     ),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     maxLines = 1,
                     leadingIcon = {
                         Icon(
@@ -195,13 +222,27 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                             contentDescription = "passwordIcon"
                         )
                     },
+                    trailingIcon = {
+                        val image = if (passwordVisible)
+                            Icons.Filled.Visibility
+                        else Icons.Filled.VisibilityOff
+
+                        // Please provide localized description for accessibility services
+                        val description = if (passwordVisible) "Hide password" else "Show password"
+
+                        IconButton(onClick = {passwordVisible = !passwordVisible}){
+                            Icon(imageVector  = image, description)
+                        }
+                    },
                     onValueChange = {
                         confirmPassword = it
                         isButtonEnabled = email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
                     },
                     label = { Text(text = "Confirm Password") },
                     placeholder = { Text("Confirm your password") },
-                    modifier = Modifier.padding(bottom = 10.dp).fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .fillMaxWidth(),
                 )
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
