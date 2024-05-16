@@ -1,5 +1,6 @@
 package com.example.tempusky.ui.screens.signup
 
+import android.Manifest
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import com.google.firebase.auth.FirebaseAuth
@@ -275,6 +277,12 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                                                           "username" to userName
                                                       )
                                                   )
+                                              MainActivity.locationPermissionLauncher.launch(
+                                                  arrayOf(
+                                                      Manifest.permission.ACCESS_FINE_LOCATION,
+                                                      Manifest.permission.ACCESS_COARSE_LOCATION
+                                                  )
+                                              )
                                               navController.navigate(NavigationRoutes.HOME)
                                               mainViewModel.setBottomBarVisible(true)
                                           } else {

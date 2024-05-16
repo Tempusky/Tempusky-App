@@ -81,10 +81,18 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 Log.d(TAG, "signInWithCredential:success")
+                                MainActivity.locationPermissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
+                                )
+                                mainViewModel.setBottomBarVisible(true)
                                 navController.navigate(NavigationRoutes.HOME)
                             } else {
                                 // If sign in fails, display a message to the user.
                                 Log.w(TAG, "signInWithCredential:failure", task.exception)
+                                Toast.makeText(MainActivity.context, "Authentication failed.", Toast.LENGTH_SHORT).show()
                             }
                         }
                 }
