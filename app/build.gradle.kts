@@ -73,6 +73,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.7")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.7")
     implementation ("com.google.android.material:material:1.11.0")
+    implementation ("androidx.compose.material:material-icons-core:1.0.0-beta01")
+    implementation ("androidx.compose.material:material-icons-extended:1.0.0-beta01")
     implementation ("com.google.android.gms:play-services-location:21.2.0")
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
     implementation("com.google.firebase:firebase-analytics:21.6.2")
@@ -80,4 +82,5 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:20.0.0")
+
 }
