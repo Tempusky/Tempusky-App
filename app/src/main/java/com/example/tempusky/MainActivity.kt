@@ -228,7 +228,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         private const val REQUEST_CHECK_SETTINGS = 0x1
-        private const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 10000  // 10000
+        private const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 1000000  // 10000
         private const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
             UPDATE_INTERVAL_IN_MILLISECONDS / 2
         private const val KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates"

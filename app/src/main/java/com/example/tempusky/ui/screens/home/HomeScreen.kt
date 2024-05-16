@@ -62,7 +62,6 @@ import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 
 @RequiresApi(Build.VERSION_CODES.Q)
-@OptIn(MapboxExperimental::class)
 @OptIn(MapboxExperimental::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
