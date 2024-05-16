@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.tempusky.data.SettingsValues
+import com.example.tempusky.domain.map.MapPointData
 
 class MainViewModel : ViewModel() {
 
@@ -15,6 +16,21 @@ class MainViewModel : ViewModel() {
 
     private var _isDarkTheme = MutableLiveData("")
     val appTheme : LiveData<String> = _isDarkTheme
+
+    private var _showBottomSheet = MutableLiveData(false)
+    val showBottomSheet : LiveData<Boolean> = _showBottomSheet
+
+    private var _selectedMapData: MutableLiveData<MapPointData> = MutableLiveData()
+    val selectedMapData: LiveData<MapPointData> = _selectedMapData
+
+    fun setSelectedMapData(data : MapPointData){
+        _selectedMapData.value = data
+        showBottomSheet(true)
+    }
+
+    fun showBottomSheet(v : Boolean){
+        _showBottomSheet.value = v
+    }
 
     fun setLoading(v : Boolean){
         _isLoading.value = v

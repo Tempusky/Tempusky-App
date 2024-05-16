@@ -1,5 +1,6 @@
 package com.example.tempusky.core.helpers
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 
@@ -15,14 +16,17 @@ object SensorsDataHelper {
     val humidityData : LiveData<Float> = _humidityData
 
     fun updateTemperatureData(temperature: Float) {
+        Log.d("SensorsDatHelper --| Received sensor data", "Temperature: $temperature")
         _tempData.value = temperature
     }
 
     fun updatePressureData(pressure: Float) {
+        Log.d("SensorsDatHelper --| Received sensor data", "Pressure: $pressure")
         _pressureData.value = pressure
     }
 
     fun updateHumidityData(humidity: Float) {
+        Log.d("SensorsDatHelper --| Received sensor data", "Humidity: $humidity")
         _humidityData.value = humidity
     }
 }

@@ -12,10 +12,11 @@ import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.ui.navigation.BottomNavBar
 import com.example.tempusky.ui.navigation.TempuskyNavHost
+import com.example.tempusky.ui.screens.search.SearchViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel) {
+fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel, searchViewModel: SearchViewModel) {
     val navController = rememberNavController()
     var bottombarVisible by remember { mutableStateOf(false) }
 
@@ -30,6 +31,6 @@ fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel) {
             }
         })
     {
-        TempuskyNavHost(mainContext, navController = navController, mainViewModel)
+        TempuskyNavHost(mainContext, navController = navController, mainViewModel, searchViewModel)
     }
 }

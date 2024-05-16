@@ -14,13 +14,6 @@ class LocationUpdatesReceiver: BroadcastReceiver() {
         Log.d(TAG, "onReceive() context:$context, intent:$intent")
 
         if (intent.action == ACTION_PROCESS_UPDATES) {
-
-            // Checks for location availability changes.
-            LocationAvailability.extractLocationAvailability(intent).let { locationAvailability ->
-                if (!locationAvailability?.isLocationAvailable!!) {
-                    Log.d(TAG, "Location services are no longer available!")
-                }
-            }
             var latitude = 0.0
             var longitude = 0.0
             LocationResult.extractResult(intent).let { locationResult ->
@@ -31,7 +24,6 @@ class LocationUpdatesReceiver: BroadcastReceiver() {
                 if (locations != null) {
                     if (locations.isNotEmpty()) {
                         Log.d(TAG, "Location Data: $latitude, $longitude")
-                        // Call method to send location data to server
                         startEnvironmentSensorsService(context, latitude, longitude)
                     }
                 }
