@@ -12,7 +12,20 @@
           "package_name": "com.example.tempusky"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "76632527149-961sju8ajf85ea0tf7ggdq2anuhi79vk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tempusky",
+            "certificate_hash": "1e949436ea366b0e15c192991852f884269a52c9"
+          }
+        },
+        {
+          "client_id": "76632527149-921ivj6ec660o1h8njqoofrnuicngg6p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAlRmrtcmbkMFZTidZz-SQp0P_IeEGhGdc"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "76632527149-921ivj6ec660o1h8njqoofrnuicngg6p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

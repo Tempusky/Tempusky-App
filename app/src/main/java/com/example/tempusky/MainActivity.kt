@@ -22,6 +22,7 @@ import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.ui.MainScreen
 import com.example.tempusky.ui.theme.TempuskyTheme
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -99,7 +100,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
         notificationsPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
@@ -113,6 +113,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestIdToken(getString(R.string.web_client_id))
+            .requestProfile()
+            .build()
 
         requestPermissions()
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -236,5 +242,6 @@ class MainActivity : ComponentActivity() {
         lateinit var locationPermissionLauncher: ActivityResultLauncher<Array<String>>
         lateinit var notificationsPermissionLauncher: ActivityResultLauncher<Array<String>>
         var mRequestingLocationUpdates: Boolean = false
+        lateinit var gso : GoogleSignInOptions
     }
 }

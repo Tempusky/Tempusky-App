@@ -1,18 +1,19 @@
 package com.example.tempusky.ui.screens.login
 
 import android.Manifest
+import android.app.Activity
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -25,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,13 +43,46 @@ import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
+    val auth: FirebaseAuth = Firebase.auth
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(false) }
+    val googleSignInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                // Google Sign In was successful, authenticate with Firebase
+                task.result?.idToken?.let { idToken ->
+                    val credential = GoogleAuthProvider.getCredential(idToken, null)
+                    auth.signInWithCredential(credential)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Log.d(TAG, "signInWithCredential:success")
+                                navController.navigate(NavigationRoutes.HOME)
+                            } else {
+                                // If sign in fails, display a message to the user.
+                                Log.w(TAG, "signInWithCredential:failure", task.exception)
+                            }
+                        }
+                }
+            } catch (e: ApiException) {
+                // Google Sign In failed, update UI appropriately
+                Log.w(TAG, "Google sign in failed", e)
+                Toast.makeText(MainActivity.context, "Google sign in failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    }
 
     Box(modifier = Modifier.fillMaxSize()){
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly) {
@@ -126,7 +159,6 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                 )
             }
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                     OutlinedButton(onClick = { navController.navigate(NavigationRoutes.SIGNUP) },
                         border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
@@ -139,13 +171,27 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
 
                     Button(
                         onClick = {
-                            MainActivity.locationPermissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                )
-                            );
-                            navController.navigate(NavigationRoutes.HOME); mainViewModel.setBottomBarVisible(true) },
+                            auth.signInWithEmailAndPassword(email, password)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        MainActivity.locationPermissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
+                                        )
+                                        mainViewModel.setBottomBarVisible(true)
+                                        navController.navigate(NavigationRoutes.HOME)
+                                    } else {
+                                        // If sign in fails, display a message to the user.
+                                        Toast.makeText(
+                                            MainActivity.context,
+                                            "Authentication failed.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                        },
                         enabled = isButtonEnabled,
                         shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(
@@ -156,6 +202,27 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
                     }
                 }
             }
+            Button(
+                modifier = Modifier.fillMaxWidth(0.8f),
+                onClick = {
+                    val signInIntent = GoogleSignIn.getClient(MainActivity.context, MainActivity.gso).signInIntent
+                    googleSignInLauncher.launch(signInIntent)
+                },
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                    containerColor = MaterialTheme.colorScheme.secondary),
+            ) {
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = "googleIcon"
+                    )
+                    Text(text = "LOGIN WITH GOOGLE", fontSize = 20.sp)
+                }
+            }
         }
     }
 }
+
+private const val TAG = "LoginScreen"

@@ -1,5 +1,6 @@
 package com.example.tempusky.ui.screens.profile
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,10 +39,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.tempusky.R
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun ProfileScreen(navController: NavController) {
-    Box(modifier = Modifier.fillMaxHeight(0.93f).fillMaxWidth()){
+    val db = Firebase.firestore
+    val auth = Firebase.auth
+    var username by remember { mutableStateOf("") }
+
+    db.collection("users").document("${auth.currentUser?.uid}").get()
+        .addOnSuccessListener { document ->
+            if (document != null) {
+                Log.d("TAG", "DocumentSnapshot data: ${document.data}")
+                username = document.data?.get("username").toString()
+            } else {
+                Log.d("TAG", "No such document")
+            }
+        }
+
+    Box(modifier = Modifier
+        .fillMaxHeight(0.93f)
+        .fillMaxWidth()){
         Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween, horizontalAlignment = Alignment.CenterHorizontally) {
             Column(horizontalAlignment = Alignment.End, modifier = Modifier
                 .padding(10.dp)
@@ -51,8 +75,8 @@ fun ProfileScreen(navController: NavController) {
                             .size(100.dp)
                             .clip(CircleShape), contentDescription = "profile picture")
                     Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
-                        Text(text = "Username", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-                        Text(text = "Email", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        Text(text = username, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        auth.currentUser?.email?.let { Text(text = it, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
                     }
                 }
             }
