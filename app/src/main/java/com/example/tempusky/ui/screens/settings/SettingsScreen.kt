@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -139,7 +140,7 @@ fun LanguageSelector(
                 RadioButton(
                     selected = (language == selectedLanguage),
                     onClick = { onLanguageSelected(language) },
-                    colors = RadioButtonDefaults.colors(selectedColor = androidx.compose.ui.graphics.Color.Blue)
+                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
                 )
                 Text(
                     text = language,
@@ -188,7 +189,7 @@ fun NetworkSelector(
                 RadioButton(
                     selected = (network == selectedNetwork),
                     onClick = { onNetworkSelected(network) },
-                    colors = RadioButtonDefaults.colors(selectedColor = androidx.compose.ui.graphics.Color.Blue)
+                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
                 )
                 Text(
                     text = network,
@@ -220,7 +221,7 @@ fun ThemeSelector(
                 RadioButton(
                     selected = (theme == selectedTheme),
                     onClick = { onThemeSelected(theme) },
-                    colors = RadioButtonDefaults.colors(selectedColor = androidx.compose.ui.graphics.Color.Blue)
+                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
                 )
                 Text(
                     text = theme,
