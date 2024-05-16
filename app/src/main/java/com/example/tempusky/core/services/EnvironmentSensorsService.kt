@@ -10,13 +10,16 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.tempusky.R
 import com.example.tempusky.core.helpers.SensorsDataHelper
-import kotlin.random.Random
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class EnvironmentSensorsService : Service(), SensorEventListener {
 
@@ -34,6 +37,8 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     private var temperatureReceived = 0.0f
     private var pressureReceived = 0.0f
     private var humidityReceived = 0.0f
+    private val auth: FirebaseAuth = Firebase.auth
+    private val db: FirebaseFirestore = Firebase.firestore
 
     override fun onCreate() {
         super.onCreate()
@@ -68,6 +73,9 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (auth.currentUser == null) {
+            stopSelf()
+        }
         Companion.intent = intent!!
         val notification = buildNotification("Started Environment Sensors Service")
         startForeground(NOTIFICATION_ID, notification)
@@ -77,15 +85,13 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
-                CHANNEL_ID,
-                "Environment Sensors Service Channel",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(serviceChannel)
-        }
+        val serviceChannel = NotificationChannel(
+            CHANNEL_ID,
+            "Environment Sensors Service Channel",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(serviceChannel)
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
@@ -124,11 +130,36 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                 sensorManager?.unregisterListener(this)
                 val latitude = intent.getDoubleExtra("latitude", 0.0)
                 val longitude = intent.getDoubleExtra("longitude", 0.0)
-                val updatedNotification = buildNotification("Sensors data updated and uploaded $latitude, $longitude, $temperatureReceived, $pressureReceived, $humidityReceived")
+                uploadDataToCloud(latitude, longitude, temperatureReceived, pressureReceived, humidityReceived)
+            }
+        }
+    }
+
+    private fun uploadDataToCloud(latitude: Double, longitude: Double, temperature: Float, pressure: Float, humidity: Float) {
+        // Upload data to cloud
+        val data = hashMapOf(
+            "latitude" to latitude,
+            "longitude" to longitude,
+            "temperature" to temperature,
+            "pressure" to pressure,
+            "humidity" to humidity,
+            "timestamp" to System.currentTimeMillis()
+        )
+        db.collection("users").document("${auth.currentUser?.uid}")
+            .collection("environment_sensors_data")
+            .add(data)
+            .addOnSuccessListener { documentReference ->
+                Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
+                val updatedNotification = buildNotification("Data uploaded to cloud")
                 val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(NOTIFICATION_ID, updatedNotification)
             }
-        }
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error adding document", e)
+                val errorNotification = buildNotification("Error uploading data to cloud")
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(NOTIFICATION_ID, errorNotification)
+            }
     }
 
     private fun buildNotification(text: String): Notification {
