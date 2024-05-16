@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,6 +85,13 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
 
     }
 
+    LaunchedEffect(Unit){
+        auth.currentUser?.let {
+            mainViewModel.setBottomBarVisible(true)
+            navController.navigate(NavigationRoutes.HOME)
+        }
+    }
+    
     Box(modifier = Modifier.fillMaxSize()){
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly) {
             Box(modifier = Modifier
