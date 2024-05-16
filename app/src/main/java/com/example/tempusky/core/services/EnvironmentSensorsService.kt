@@ -122,10 +122,8 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             }
             if (temperatureUpdated == true && pressureUpdated == true && humidityUpdated == true) {
                 sensorManager?.unregisterListener(this)
-                Log.d(TAG, "All sensors updated")
                 val latitude = intent.getDoubleExtra("latitude", 0.0)
                 val longitude = intent.getDoubleExtra("longitude", 0.0)
-                Log.d(TAG, "Location in Environment Sensors Service: $latitude, $longitude")
                 val updatedNotification = buildNotification("Sensors data updated and uploaded $latitude, $longitude, $temperatureReceived, $pressureReceived, $humidityReceived")
                 val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(NOTIFICATION_ID, updatedNotification)
