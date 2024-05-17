@@ -10,8 +10,14 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.tempusky.R
+import com.example.tempusky.core.helpers.GeofencesHelper
+import com.example.tempusky.data.GeofenceData
+import com.example.tempusky.data.SearchDataResult
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
@@ -19,7 +25,10 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         private const val TAG = "GeofenceReceiver"
     }
 
+    private val db = Firebase.firestore
+    private val auth = Firebase.auth
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d(TAG, "Geofence event received")
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent!!.hasError()) {
             val errorMessage = geofencingEvent.errorCode.toString()
@@ -45,13 +54,47 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         geofenceTransition: Int,
         triggeringGeofences: List<Geofence>
     ) {
+        Log.d(TAG, "Geofence transition")
         for (geofence in triggeringGeofences) {
             val geofenceId = geofence.requestId
 
             when (geofenceTransition) {
                 Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                    Log.d(TAG, "Entered geofence: $geofenceId")
-                    showNotification(context, "Geofence Entered", "You have entered the geofence: $geofenceId")
+                    db.collection("geofences").get()
+                        .addOnSuccessListener { result ->
+                            for (document in result) {
+                                val data = document.data
+                                if(data["geofenceId"].toString() == geofenceId){
+                                    Log.d(TAG, "Entered geofence: $geofenceId")
+                                    db.collection("environment_sensors_data").get()
+                                        .addOnSuccessListener { data2 ->
+                                            val totalTemp = 0.0
+                                            val totalHumidity = 0.0
+                                            val totalPressure = 0.0
+                                            for (document2 in data2) {
+                                                if (document2.data["location"].toString() == data["location"].toString()) {
+                                                    val mapData = SearchDataResult(
+                                                        document2.data["username"].toString(),
+                                                        document2.data["location"].toString(),
+                                                        document2.data["temperature"].toString().toDouble(),
+                                                        document2.data["humidity"].toString().toDouble(),
+                                                        document2.data["pressure"].toString().toDouble(),
+                                                        document2.data["timestamp"].toString()
+                                                    )
+                                                    totalTemp.plus(mapData.temperature)
+                                                    totalHumidity.plus(mapData.humidity)
+                                                    totalPressure.plus(mapData.pressure)
+                                                }
+                                            }
+                                            val notificationText = "Data for location: ${data["location"].toString()}\n" +
+                                                    "Average Temperature: ${totalTemp/data2.size()}\n" +
+                                                    "Average Humidity: ${totalHumidity/data2.size()}\n" +
+                                                    "Average Pressure: ${totalPressure/data2.size()}"
+                                            showNotification(context, "You Entered ${data["location"]}", notificationText)
+                                        }
+                                }
+                            }
+                        }
                 }
                 Geofence.GEOFENCE_TRANSITION_EXIT -> {
                     Log.d(TAG, "Exited geofence: $geofenceId")
