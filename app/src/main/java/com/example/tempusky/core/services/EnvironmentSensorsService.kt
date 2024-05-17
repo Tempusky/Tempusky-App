@@ -10,6 +10,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Handler
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -28,22 +29,28 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         private const val CHANNEL_ID = "EnvironmentSensorsServiceChannel"
         private const val NOTIFICATION_ID = 1
         private lateinit var intent: Intent
+        private const val MIN_TEMPERATURE = -100.0f
+        private const val MAX_TEMPERATURE = 100.0f
+        private const val SENSOR_TIMEOUT = 38000000L
     }
 
     private var sensorManager: SensorManager? = null
-    private var temperatureUpdated: Boolean? = null
-    private var pressureUpdated: Boolean? = null
-    private var humidityUpdated: Boolean? = null
     private var temperatureReceived = 0.0f
     private var pressureReceived = 0.0f
     private var humidityReceived = 0.0f
+    private var temperatureUpdated: Boolean = false
+    private var pressureUpdated: Boolean = false
+    private var humidityUpdated: Boolean = false
     private val auth: FirebaseAuth = Firebase.auth
     private val db: FirebaseFirestore = Firebase.firestore
+    private var handler: Handler? = null
+    private var timeoutRunnable: Runnable? = null
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         sensorManager = this.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        handler = Handler()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -70,12 +77,19 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             humidityUpdated = false
             sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
+
+        // Set a timeout to ensure sensors don't wait indefinitely
+        timeoutRunnable = Runnable {
+            if (!(temperatureUpdated && pressureUpdated && humidityUpdated)) {
+                Log.d(TAG, "Sensor data timeout")
+                // Handle the case where not all sensor data is updated within the timeout
+            }
+        }
+        handler?.postDelayed(timeoutRunnable!!, SENSOR_TIMEOUT)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (auth.currentUser == null) {
-            stopSelf()
-        }
+        Log.d(TAG, "onStartCommand()")
         Companion.intent = intent!!
         val notification = buildNotification("Started Environment Sensors Service")
         startForeground(NOTIFICATION_ID, notification)
@@ -103,22 +117,23 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             when (it.sensor.type) {
                 Sensor.TYPE_AMBIENT_TEMPERATURE -> {
                     val temperatureCelsius = it.values[0]
-                    temperatureReceived = temperatureCelsius
-                    Log.d(TAG, "Temperature: $temperatureCelsius")
-                    SensorsDataHelper.updateTemperatureData(temperatureCelsius)
-                    temperatureUpdated = true
+                    if (temperatureCelsius in MIN_TEMPERATURE..MAX_TEMPERATURE) {
+                        temperatureReceived = temperatureCelsius
+                        SensorsDataHelper.updateTemperatureData(temperatureCelsius)
+                        temperatureUpdated = true
+                    } else {
+                        Log.d(TAG, "Received invalid temperature: $temperatureCelsius")
+                    }
                 }
                 Sensor.TYPE_PRESSURE -> {
                     val pressure = it.values[0]
                     pressureReceived = pressure
-                    Log.d(TAG, "Pressure: $pressure")
                     SensorsDataHelper.updatePressureData(pressure)
                     pressureUpdated = true
                 }
                 Sensor.TYPE_RELATIVE_HUMIDITY -> {
                     val humidity = it.values[0]
                     humidityReceived = humidity
-                    Log.d(TAG, "Humidity: $humidity")
                     SensorsDataHelper.updateHumidityData(humidity)
                     humidityUpdated = true
                 }
@@ -126,11 +141,16 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                     Log.d(TAG, "Unknown sensor type")
                 }
             }
-            if (temperatureUpdated == true && pressureUpdated == true && humidityUpdated == true) {
-                sensorManager?.unregisterListener(this)
+            if (temperatureUpdated && pressureUpdated && humidityUpdated) {
                 val latitude = intent.getDoubleExtra("latitude", 0.0)
                 val longitude = intent.getDoubleExtra("longitude", 0.0)
                 uploadDataToCloud(latitude, longitude, temperatureReceived, pressureReceived, humidityReceived)
+                temperatureUpdated = false
+                pressureUpdated = false
+                humidityUpdated = false
+                handler?.removeCallbacks(timeoutRunnable!!)
+                sensorManager?.unregisterListener(this)
+                stopSelf()
             }
         }
     }
@@ -168,5 +188,17 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             .setContentText(text)
             .setSmallIcon(R.mipmap.ic_launcher)
             .build()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy()")
+        sensorManager?.unregisterListener(this)
+        handler?.removeCallbacks(timeoutRunnable!!)
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        Log.d(TAG, "onTaskRemoved()")
     }
 }
