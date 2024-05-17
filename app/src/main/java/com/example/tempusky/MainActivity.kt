@@ -16,6 +16,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.tempusky.core.broadcastReceivers.GeofenceBroadcastReceiver
 import com.example.tempusky.core.broadcastReceivers.LocationUpdatesReceiver
 import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.data.SettingsDataStore
@@ -25,6 +26,7 @@ import com.example.tempusky.ui.screens.search.SearchViewModel
 import com.example.tempusky.ui.theme.TempuskyTheme
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
@@ -36,12 +38,14 @@ class MainActivity : ComponentActivity() {
     val locatioViewModel: LocationViewModel by viewModels()
     private lateinit var dataStore : SettingsDataStore
     private var settings = false
+    private lateinit var geofencingClient: GeofencingClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = SettingsDataStore(this)
         locationViewModel = locatioViewModel
         locatioViewModel.setLastUpdateTime("")
+        geofencingClient = LocationServices.getGeofencingClient(this)
         setContent {
             val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")

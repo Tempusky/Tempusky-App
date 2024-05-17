@@ -44,6 +44,7 @@
                 <action android:name="com.google.android.gms.location.example.tempusky.action.PROCESS_UPDATES" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".core.broadcastReceivers.GeofenceBroadcastReceiver" />
     </application>
 
 </manifest>
