@@ -146,7 +146,7 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
                     ViewAnnotation(
                         options = viewAnnotationOptions {
                             geometry(location.point)
-                            allowOverlap(false)
+                            allowOverlap(true)
                         }
                     ) {
                         MapDataObject(data = location, viewModel = mainViewModel)
