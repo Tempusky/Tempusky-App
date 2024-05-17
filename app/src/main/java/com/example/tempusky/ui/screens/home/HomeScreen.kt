@@ -48,11 +48,13 @@ import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tempusky.core.helpers.GeofencesHelper
+import com.example.tempusky.data.GeofenceData
 import com.example.tempusky.data.SearchDataResult
 import com.example.tempusky.ui.screens.search.DataReceivedItem
 import com.example.tempusky.ui.screens.search.SearchViewModel
@@ -74,14 +76,14 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
         MapPointData("22.3", Point.fromLngLat(0.8114, 41.7910), "Balaguer", "852 Values available"),
         MapPointData("25.8", Point.fromLngLat(0.6430, 41.6755), "Torrefarrera", "156 Values available")
     )
-    for (location in locations) {
-        GeofencesHelper.initialize(context)
-        GeofencesHelper.addGeofence(context, location.id, location.point.latitude(), location.point.longitude(), 200f)
-    }
     var selectedPoint by remember { mutableStateOf<MapPointData?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+    var geofencesList by remember { mutableStateOf(listOf<GeofenceData>())}
     var resultsCity by remember { mutableStateOf(listOf<SearchDataResult>())}
+    mainViewModel.geoFences.observe(context) {
+        geofencesList = it
+    }
     searchViewModel.searchDataResult.observe(context) {
         resultsCity = it
     }
@@ -101,6 +103,16 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     DisposableEffect(Unit){
         onDispose {
             mainViewModel.showBottomSheet(false)
+        }
+    }
+    LaunchedEffect(Unit){
+        GeofencesHelper.initialize(context)
+        mainViewModel.getGeofencesCloud(context)
+    }
+    LaunchedEffect(geofencesList)
+    {
+        for (geofence in geofencesList) {
+            GeofencesHelper.addGeofence(context, geofence.id, geofence.location_coords.latitude, geofence.location_coords.longitude, geofence.radius)
         }
     }
     key(deviceTheme){
@@ -149,6 +161,7 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
                         options = viewAnnotationOptions {
                             geometry(location.point)
                             allowOverlap(true)
+                            allowOverlapWithPuck(true)
                         }
                     ) {
                         MapDataObject(data = location, viewModel = mainViewModel,searchViewModel = searchViewModel)
@@ -169,7 +182,9 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
                                 Text(text = selectedPoint?.title ?: "No data selected", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
-                                Icon(imageVector = Icons.Outlined.Info, contentDescription = "date", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(50.dp).padding(end=20.dp))
+                                Icon(imageVector = Icons.Outlined.Info, contentDescription = "date", tint = MaterialTheme.colorScheme.primary, modifier = Modifier
+                                    .size(50.dp)
+                                    .padding(end = 20.dp))
                                 Text(text = selectedPoint?.id + "ºC", fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
                             }
                             LazyColumn(modifier = Modifier

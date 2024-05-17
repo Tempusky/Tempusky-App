@@ -90,9 +90,9 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand()")
-        Companion.intent = intent!!
         val notification = buildNotification("Started Environment Sensors Service")
         startForeground(NOTIFICATION_ID, notification)
+        Companion.intent = intent!!
         val sensors = getSensors()
         registerSensors(sensors)
         return START_STICKY

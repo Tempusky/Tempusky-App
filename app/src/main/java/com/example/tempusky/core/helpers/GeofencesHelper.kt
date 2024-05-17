@@ -45,7 +45,6 @@ object GeofencesHelper {
         val geofence = Geofence.Builder()
             .setRequestId(geofenceId)
             .setCircularRegion(latitude, longitude, radius)
-            .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
             .build()
 
@@ -68,7 +67,7 @@ object GeofencesHelper {
         }
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent).run {
             addOnSuccessListener {
-                Log.d(TAG, "Geofence added successfully: $geofenceId")
+                Log.d(TAG, "Geofence added successfully: $geofenceId, $latitude, $longitude, $radius")
             }
             addOnFailureListener {
                 Log.e(TAG, "Failed to add geofence: $geofenceId", it)
