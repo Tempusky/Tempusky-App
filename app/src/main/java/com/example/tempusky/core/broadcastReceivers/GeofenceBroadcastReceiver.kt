@@ -59,9 +59,10 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                 Geofence.GEOFENCE_TRANSITION_ENTER -> {
                     db.collection("environment_sensors_data").get()
                         .addOnSuccessListener { data ->
-                            val totalTemp = 0.0
-                            val totalHumidity = 0.0
-                            val totalPressure = 0.0
+                            var totalTemp = 0.0
+                            var totalHumidity = 0.0
+                            var totalPressure = 0.0
+                            var count = 0
                             for (document in data) {
                                 if (document.data["location"].toString() == geofenceId) {
                                     val mapData = SearchDataResult(
@@ -73,12 +74,13 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                                         document.data["timestamp"].toString()
                                     )
                                     Log.d(TAG, "Data: $mapData")
-                                    totalTemp.plus(mapData.temperature)
-                                    totalHumidity.plus(mapData.humidity)
-                                    totalPressure.plus(mapData.pressure)
+                                    totalTemp+=mapData.temperature
+                                    totalHumidity+=mapData.humidity
+                                    totalPressure+=mapData.pressure
+                                    count++
                                 }
                             }
-                            val notificationText = "Average Temperature: ${totalTemp/data.size()}\n"
+                            val notificationText = "Average Temperature: ${totalTemp/count}\n"
                             showNotification(context, "You Entered $geofenceId", notificationText)
                         }
                 }
