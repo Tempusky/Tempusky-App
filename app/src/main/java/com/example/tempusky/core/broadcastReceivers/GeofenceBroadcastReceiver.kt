@@ -57,14 +57,14 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         Log.d(TAG, "Geofence transition")
         for (geofence in triggeringGeofences) {
             val geofenceId = geofence.requestId
-
             when (geofenceTransition) {
                 Geofence.GEOFENCE_TRANSITION_ENTER -> {
                     db.collection("geofences").get()
                         .addOnSuccessListener { result ->
                             for (document in result) {
+                                Log.d(TAG, "Entered geofence: $geofenceId")
                                 val data = document.data
-                                if(data["geofenceId"].toString() == geofenceId){
+                                if(data["geofence_id"].toString() == geofenceId){
                                     Log.d(TAG, "Entered geofence: $geofenceId")
                                     db.collection("environment_sensors_data").get()
                                         .addOnSuccessListener { data2 ->
@@ -86,10 +86,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                                                     totalPressure.plus(mapData.pressure)
                                                 }
                                             }
-                                            val notificationText = "Data for location: ${data["location"].toString()}\n" +
-                                                    "Average Temperature: ${totalTemp/data2.size()}\n" +
-                                                    "Average Humidity: ${totalHumidity/data2.size()}\n" +
-                                                    "Average Pressure: ${totalPressure/data2.size()}"
+
+                                            Log.d(TAG, "Average Temperature: ${totalTemp}")
+                                            val notificationText = "Average Temperature: ${totalTemp/data2.size()}\n"
                                             showNotification(context, "You Entered ${data["location"]}", notificationText)
                                         }
                                 }
