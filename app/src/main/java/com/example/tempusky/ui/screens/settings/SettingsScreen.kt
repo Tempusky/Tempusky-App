@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -20,16 +22,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
+import com.example.tempusky.domain.appNavigation.NavigationRoutes
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(mainViewModel: MainViewModel) {
+fun SettingsScreen(navController: NavController, mainViewModel: MainViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dataStore = SettingsDataStore(context)
@@ -115,7 +123,32 @@ fun SettingsScreen(mainViewModel: MainViewModel) {
             SensorSwitch("Pressure", savedPressureEnabled.value) {
                 scope.launch { dataStore.setPressureEnabled(it) }
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            SignOutButton(mainViewModel, navController)
         }
+    }
+}
+
+@Composable
+fun SignOutButton(mainViewModel: MainViewModel, navController: NavController) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    Button(
+        onClick = {
+            scope.launch {
+                mainViewModel.signOut()
+                navController.navigate(NavigationRoutes.LOGIN)
+            }
+        },
+        colors = ButtonDefaults.buttonColors(
+            contentColor = Color.White,
+            containerColor = Color.Red),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text("Sign Out", fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
     }
 }
 

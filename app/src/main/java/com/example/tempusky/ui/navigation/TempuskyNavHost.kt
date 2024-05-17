@@ -1,5 +1,7 @@
 package com.example.tempusky.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import com.example.tempusky.ui.screens.search.SearchViewModel
 import com.example.tempusky.ui.screens.settings.SettingsScreen
 import com.example.tempusky.ui.screens.signup.SignupScreen
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun TempuskyNavHost(context: MainActivity, navController: NavController, mainViewModel:  MainViewModel, searchViewModel: SearchViewModel) {
     NavHost(startDestination = NavigationRoutes.LOGIN, navController = navController as NavHostController) {
@@ -129,7 +132,7 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                 )
             }
         ){
-            SettingsScreen(mainViewModel)
+            SettingsScreen(navController, mainViewModel)
         }
         composable(NavigationRoutes.SIGNUP){
             SignupScreen(navController = navController, mainViewModel = mainViewModel)

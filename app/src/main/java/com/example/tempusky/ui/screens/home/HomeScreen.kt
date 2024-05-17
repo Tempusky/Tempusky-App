@@ -92,7 +92,6 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
     }
 
     DisposableEffect(Unit){
-        //Hide bottom sheet when the screen is disposed(exited)
         onDispose {
             mainViewModel.showBottomSheet(false)
         }

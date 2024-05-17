@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.domain.map.MapPointData
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class MainViewModel : ViewModel() {
 
@@ -43,5 +45,10 @@ class MainViewModel : ViewModel() {
 
     fun setBottomBarVisible(v : Boolean){
         _bottomBarVisibility.value = v
+    }
+
+    fun signOut(){
+        Firebase.auth.signOut()
+        setBottomBarVisible(false)
     }
 }
