@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tempusky.core.helpers.GeofencesHelper
 import com.mapbox.maps.ViewAnnotationAnchor
 import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.viewannotation.geometry
@@ -70,11 +71,15 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel) {
     var deviceTheme by remember { mutableStateOf("") }
     var requestingPermissions by remember { mutableStateOf(false) }
     val locations = listOf(
-        MapPointData("24.5", Point.fromLngLat(0.6206, 41.6148), "Lleida", "1221 Values available"),
+        MapPointData("24.5", Point.fromLngLat(0.6177, 41.6177), "Lleida", "1221 Values available"),
         MapPointData("23", Point.fromLngLat(0.5730, 41.7296), "Albesa", "223 Values available"),
         MapPointData("22.3", Point.fromLngLat(0.8114, 41.7910), "Balaguer", "852 Values available"),
         MapPointData("25.8", Point.fromLngLat(0.6430, 41.6755), "Torrefarrera", "156 Values available")
     )
+    for (location in locations) {
+        GeofencesHelper.initialize(context)
+        GeofencesHelper.addGeofence(context, location.id, location.point.latitude(), location.point.longitude(), 200f)
+    }
     var selectedPoint by remember { mutableStateOf<MapPointData?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
