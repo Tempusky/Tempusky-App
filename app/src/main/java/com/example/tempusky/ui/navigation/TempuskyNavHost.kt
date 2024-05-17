@@ -52,7 +52,7 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                     animationSpec = tween(700)
                 )
             }){
-            HomeScreen(context, mainViewModel)
+            HomeScreen(context, mainViewModel, searchViewModel)
         }
         composable(NavigationRoutes.PROFILE,
             enterTransition = {
