@@ -19,6 +19,7 @@ import com.example.tempusky.core.helpers.SensorsDataHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
@@ -166,8 +167,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                     val username = document.data?.get("username").toString()
                     // Upload data to cloud
                     val data = hashMapOf(
-                        "latitude" to latitude,
-                        "longitude" to longitude,
+                        "sync_cords" to GeoPoint(latitude, longitude),
                         "temperature" to temperature,
                         "pressure" to pressure,
                         "humidity" to humidity,
