@@ -93,7 +93,9 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         Log.d(TAG, "onStartCommand()")
         val notification = buildNotification("Started Environment Sensors Service")
         startForeground(NOTIFICATION_ID, notification)
-        Companion.intent = intent!!
+        if(intent != null) {
+           Companion.intent = intent
+        }
         val sensors = getSensors()
         registerSensors(sensors)
         return START_STICKY
