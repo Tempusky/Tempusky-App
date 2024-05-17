@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.tempusky.R
+import com.example.tempusky.core.helpers.Utils
+import com.example.tempusky.data.SearchDataResult
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -48,16 +49,39 @@ fun ProfileScreen(navController: NavController) {
     val db = Firebase.firestore
     val auth = Firebase.auth
     var username by remember { mutableStateOf("") }
+    var contributions by remember { mutableStateOf(listOf<SearchDataResult>())}
 
-    db.collection("users").document("${auth.currentUser?.uid}").get()
-        .addOnSuccessListener { document ->
-            if (document != null) {
-                Log.d("TAG", "DocumentSnapshot data: ${document.data}")
-                username = document.data?.get("username").toString()
-            } else {
-                Log.d("TAG", "No such document")
+    LaunchedEffect(Unit) {
+        db.collection("environment_sensors_data").get()
+            .addOnSuccessListener { result ->
+                val tempList = mutableListOf<SearchDataResult>()
+                for (document in result) {
+                    if (document.data["uid"].toString() == auth.currentUser?.uid) {
+                        val tempData = SearchDataResult(
+                            document.data["username"].toString(),
+                            document.data["location"].toString(),
+                            document.data["temperature"].toString().toDouble(),
+                            document.data["humidity"].toString().toDouble(),
+                            document.data["pressure"].toString().toDouble(),
+                            Utils.timestampToDate(document.data["timestamp"].toString())
+                        )
+                        tempList.add(tempData)
+                    }
+                }
+                tempList.sortByDescending { it.date }
+                contributions = tempList
             }
-        }
+
+        db.collection("users").document("${auth.currentUser?.uid}").get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    Log.d("TAG", "DocumentSnapshot data: ${document.data}")
+                    username = document.data?.get("username").toString()
+                } else {
+                    Log.d("TAG", "No such document")
+                }
+            }
+    }
 
     Box(modifier = Modifier
         .fillMaxHeight(0.93f)
@@ -83,7 +107,7 @@ fun ProfileScreen(navController: NavController) {
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.5f), horizontalArrangement = Arrangement.SpaceAround) {
-                Text(text = "Last Apportation: \n21/03/2024 - 14:23")
+                Text(text = "Last Contribution: \n${contributions.firstOrNull()?.date}", fontSize = 17.sp, fontWeight = FontWeight.Normal)
                 Button(
                     onClick = {  },
                     shape = MaterialTheme.shapes.medium,
@@ -96,9 +120,13 @@ fun ProfileScreen(navController: NavController) {
             }
             LazyColumn(modifier = Modifier
                 .fillMaxWidth(0.95f)
-                .weight(4f)){
-                items(10){
-                    DataSentItem()
+                .weight(4f)) {
+                item(1)
+                {
+                    Text(text = "Your contributions:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
+                }
+                items(contributions.size) {
+                    DataSentItem(contributions[it])
                 }
             }
         }
@@ -106,17 +134,17 @@ fun ProfileScreen(navController: NavController) {
 }
 
 @Composable
-fun DataSentItem(){
+fun DataSentItem(contribution: SearchDataResult){
     Box(modifier = Modifier
         .fillMaxSize()
-        .padding(bottom = 10.dp)
-        .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))){
+        .padding(10.dp)
+        .border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)){
         Column(modifier = Modifier.padding(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Icon", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                Text(text = "You Contributed", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(4.dp))
-            }
-            Text(text = "Data Sent Item", fontSize = 18.sp, fontWeight = FontWeight.Normal, modifier = Modifier.padding(4.dp))
+            Text(text = contribution.location, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Temperature: ${contribution.temperature}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Humidity: ${contribution.humidity}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Pressure: ${contribution.pressure}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = contribution.date, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
