@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +18,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +39,10 @@ fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
     var results by remember { mutableStateOf(listOf<SearchDataResult>())}
     searchViewModel.searchDataResult.observe(context) {
         results = it
+    }
+
+    LaunchedEffect(Unit) {
+        searchViewModel.updateSearchDataResult("")
     }
 
     Box(modifier = Modifier
@@ -80,14 +84,16 @@ fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
                     imeAction = androidx.compose.ui.text.input.ImeAction.Done
                 )
             )
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(top = 10.dp)) {
+            LazyColumn(modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 10.dp)) {
                 item(1)
                 {
                     Text(text = "Data received near you:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
                 }
                 items(results.size)
                 {
-                    DataReceivedItem()
+                    DataReceivedItem(results[it])
                 }
             }
         }
@@ -95,12 +101,17 @@ fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
 }
 
 @Composable
-fun DataReceivedItem(){
-    Box(modifier = Modifier.fillMaxSize().padding(10.dp).border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)){
+fun DataReceivedItem(result: SearchDataResult){
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(10.dp)
+        .border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)){
         Column(modifier = Modifier.padding(10.dp)) {
-            Text(text = "25ºC / 70%", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = "Location: Roselló, Lleida", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = "Date: 02-04-2023 | 12:34", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = result.location, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Temperature: ${result.temperature}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Humidity: ${result.humidity}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "Pressure: ${result.pressure}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = result.date, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
