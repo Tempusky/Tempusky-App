@@ -10,8 +10,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.tempusky.R
-import com.example.tempusky.core.helpers.GeofencesHelper
-import com.example.tempusky.data.GeofenceData
 import com.example.tempusky.data.SearchDataResult
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
@@ -59,39 +57,29 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             val geofenceId = geofence.requestId
             when (geofenceTransition) {
                 Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                    db.collection("geofences").get()
-                        .addOnSuccessListener { result ->
-                            for (document in result) {
-                                Log.d(TAG, "Entered geofence: $geofenceId")
-                                val data = document.data
-                                if(data["geofence_id"].toString() == geofenceId){
-                                    Log.d(TAG, "Entered geofence: $geofenceId")
-                                    db.collection("environment_sensors_data").get()
-                                        .addOnSuccessListener { data2 ->
-                                            val totalTemp = 0.0
-                                            val totalHumidity = 0.0
-                                            val totalPressure = 0.0
-                                            for (document2 in data2) {
-                                                if (document2.data["location"].toString() == data["location"].toString()) {
-                                                    val mapData = SearchDataResult(
-                                                        document2.data["username"].toString(),
-                                                        document2.data["location"].toString(),
-                                                        document2.data["temperature"].toString().toDouble(),
-                                                        document2.data["humidity"].toString().toDouble(),
-                                                        document2.data["pressure"].toString().toDouble(),
-                                                        document2.data["timestamp"].toString()
-                                                    )
-                                                    Log.d(TAG, "Data: $mapData")
-                                                    totalTemp.plus(mapData.temperature)
-                                                    totalHumidity.plus(mapData.humidity)
-                                                    totalPressure.plus(mapData.pressure)
-                                                }
-                                            }
-                                            val notificationText = "Average Temperature: ${totalTemp/data2.size()}\n"
-                                            showNotification(context, "You Entered ${data["location"]}", notificationText)
-                                        }
+                    db.collection("environment_sensors_data").get()
+                        .addOnSuccessListener { data ->
+                            val totalTemp = 0.0
+                            val totalHumidity = 0.0
+                            val totalPressure = 0.0
+                            for (document in data) {
+                                if (document.data["location"].toString() == geofenceId) {
+                                    val mapData = SearchDataResult(
+                                        document.data["username"].toString(),
+                                        document.data["location"].toString(),
+                                        document.data["temperature"].toString().toDouble(),
+                                        document.data["humidity"].toString().toDouble(),
+                                        document.data["pressure"].toString().toDouble(),
+                                        document.data["timestamp"].toString()
+                                    )
+                                    Log.d(TAG, "Data: $mapData")
+                                    totalTemp.plus(mapData.temperature)
+                                    totalHumidity.plus(mapData.humidity)
+                                    totalPressure.plus(mapData.pressure)
                                 }
                             }
+                            val notificationText = "Average Temperature: ${totalTemp/data.size()}\n"
+                            showNotification(context, "You Entered $geofenceId", notificationText)
                         }
                 }
                 Geofence.GEOFENCE_TRANSITION_EXIT -> {
