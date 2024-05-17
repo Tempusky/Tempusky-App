@@ -81,13 +81,12 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                                                         document2.data["pressure"].toString().toDouble(),
                                                         document2.data["timestamp"].toString()
                                                     )
+                                                    Log.d(TAG, "Data: $mapData")
                                                     totalTemp.plus(mapData.temperature)
                                                     totalHumidity.plus(mapData.humidity)
                                                     totalPressure.plus(mapData.pressure)
                                                 }
                                             }
-
-                                            Log.d(TAG, "Average Temperature: ${totalTemp}")
                                             val notificationText = "Average Temperature: ${totalTemp/data2.size()}\n"
                                             showNotification(context, "You Entered ${data["location"]}", notificationText)
                                         }
