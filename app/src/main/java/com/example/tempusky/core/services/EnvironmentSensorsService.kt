@@ -31,7 +31,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         private lateinit var intent: Intent
         private const val MIN_TEMPERATURE = -100.0f
         private const val MAX_TEMPERATURE = 100.0f
-        private const val SENSOR_TIMEOUT = 38000000L
+        private const val SENSOR_TIMEOUT = 1200000L
     }
 
     private var sensorManager: SensorManager? = null
@@ -150,7 +150,6 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                 humidityUpdated = false
                 handler?.removeCallbacks(timeoutRunnable!!)
                 sensorManager?.unregisterListener(this)
-                stopSelf()
             }
         }
     }
