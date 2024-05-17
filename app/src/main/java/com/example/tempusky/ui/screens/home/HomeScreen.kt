@@ -109,10 +109,10 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
         GeofencesHelper.initialize(context)
         mainViewModel.getGeofencesCloud(context)
     }
-    LaunchedEffect(geofencesList)
+    LaunchedEffect(Unit)
     {
         for (geofence in geofencesList) {
-            GeofencesHelper.addGeofence(context, geofence.id, geofence.location_coords.latitude, geofence.location_coords.longitude, geofence.radius)
+            GeofencesHelper.addGeofence(context, geofence.id, geofence.location_coords.latitude, geofence.location_coords.longitude, 100f)
         }
     }
     key(deviceTheme){
