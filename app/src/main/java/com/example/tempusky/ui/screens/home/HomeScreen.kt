@@ -76,12 +76,6 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
         MapPointData("22.3", Point.fromLngLat(0.8114, 41.7910), "Balaguer", "852 Values available"),
         MapPointData("25.8", Point.fromLngLat(0.6430, 41.6755), "Torrefarrera", "156 Values available")
     )
-    LaunchedEffect(Unit){
-        GeofencesHelper.initialize(context)
-        for (location in locations){
-            GeofencesHelper.addGeofence(context, location.id, location.point.latitude(), location.point.longitude(), 100f)
-        }
-    }
     var selectedPoint by remember { mutableStateOf<MapPointData?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -117,7 +111,7 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     LaunchedEffect(geofencesList) {
         GeofencesHelper.initialize(context)
         for (geofence in geofencesList) {
-            GeofencesHelper.addGeofence(context, geofence.id, geofence.location_coords.latitude, geofence.location_coords.longitude, 100f)
+            GeofencesHelper.addGeofence(context, geofence.id, geofence.location_coords.latitude, geofence.location_coords.longitude, 200f)
         }
     }
     key(deviceTheme){
