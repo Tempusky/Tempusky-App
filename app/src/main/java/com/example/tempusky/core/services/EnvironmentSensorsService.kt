@@ -172,7 +172,8 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                         "pressure" to pressure,
                         "humidity" to humidity,
                         "timestamp" to System.currentTimeMillis(),
-                        "username" to username
+                        "username" to username,
+                        "uid" to auth.currentUser?.uid.toString(),
                     )
                     db.collection("environment_sensors_data")
                         .add(data)
