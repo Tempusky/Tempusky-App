@@ -54,10 +54,10 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         geofenceTransition: Int,
         triggeringGeofences: List<Geofence>
     ) {
-
+        Log.d(TAG, "Geofence transition")
         for (geofence in triggeringGeofences) {
             val geofenceId = geofence.requestId
-            Log.d(TAG, "Geofence ID detected to enter: $geofenceId")
+
             when (geofenceTransition) {
                 Geofence.GEOFENCE_TRANSITION_ENTER -> {
                     db.collection("geofences").get()
