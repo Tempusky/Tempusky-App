@@ -168,10 +168,9 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
                                 Icon(imageVector = Icons.Filled.Place, contentDescription = "date", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
                                 Text(text = selectedPoint?.title ?: "No data selected", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
-                            Text(text = selectedPoint?.description ?: "No description available", fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
-                                Icon(imageVector = Icons.Outlined.Info, contentDescription = "date", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(30.dp))
-                                Text(text = selectedPoint?.id + "ºC", fontSize = 40.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
+                                Icon(imageVector = Icons.Outlined.Info, contentDescription = "date", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(50.dp).padding(end=20.dp))
+                                Text(text = selectedPoint?.id + "ºC", fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
                             }
                             LazyColumn(modifier = Modifier
                                 .fillMaxSize()
