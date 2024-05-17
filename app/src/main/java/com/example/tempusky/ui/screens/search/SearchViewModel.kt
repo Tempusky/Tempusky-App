@@ -3,11 +3,10 @@ package com.example.tempusky.ui.screens.search
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.tempusky.core.helpers.Utils
 import com.example.tempusky.data.SearchDataResult
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import java.text.SimpleDateFormat
-import java.util.Date
 
 class SearchViewModel : ViewModel() {
 
@@ -46,7 +45,7 @@ class SearchViewModel : ViewModel() {
                             document.data["temperature"].toString().toDouble(),
                             document.data["humidity"].toString().toDouble(),
                             document.data["pressure"].toString().toDouble(),
-                            timestampToDate(document.data["timestamp"].toString())
+                            Utils.timestampToDate(document.data["timestamp"].toString())
                         )
                         tempList.add(tempData)
                     }
@@ -56,11 +55,4 @@ class SearchViewModel : ViewModel() {
             }
         return _searchDatResult.value ?: listOf()
     }
-
-    private fun timestampToDate(timestamp: String): String {
-        val sdf = SimpleDateFormat("dd/MM/yyyy hh:mm:ss")
-        val netDate = Date(timestamp.toLong())
-        return sdf.format(netDate)
-    }
-
 }
