@@ -54,7 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tempusky.core.helpers.GeofencesHelper
+import com.example.tempusky.data.AverageDataLocation
 import com.example.tempusky.data.GeofenceData
+import com.example.tempusky.data.MapLocations
 import com.example.tempusky.data.SearchDataResult
 import com.example.tempusky.ui.screens.search.DataReceivedItem
 import com.example.tempusky.ui.screens.search.SearchViewModel
@@ -70,17 +72,16 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     val lightThemeMap = "mapbox://styles/mapbox/outdoors-v12"
     var deviceTheme by remember { mutableStateOf("") }
     var requestingPermissions by remember { mutableStateOf(false) }
-    val locations = listOf(
-        MapPointData("24.5", Point.fromLngLat(0.6177, 41.6177), "Lleida", "1221 Values available"),
-        MapPointData("23", Point.fromLngLat(0.5730, 41.7296), "Albesa", "223 Values available"),
-        MapPointData("22.3", Point.fromLngLat(0.8114, 41.7910), "Balaguer", "852 Values available"),
-        MapPointData("25.8", Point.fromLngLat(0.6430, 41.6755), "Torrefarrera", "156 Values available")
-    )
-    var selectedPoint by remember { mutableStateOf<MapPointData?>(null) }
+    var selectedPoint by remember { mutableStateOf<MapLocations?>(null) }
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-    var geofencesList by remember { mutableStateOf(listOf<GeofenceData>())}
+    var geofencesList by remember { mutableStateOf(listOf<MapLocations>())}
     var resultsCity by remember { mutableStateOf(listOf<SearchDataResult>())}
+    var averageDataLocation by remember { mutableStateOf(listOf<AverageDataLocation>())}
+
+    mainViewModel.averageData.observe(context) {
+        averageDataLocation = it
+    }
     mainViewModel.geoFences.observe(context) {
         geofencesList = it
     }
@@ -111,7 +112,7 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     LaunchedEffect(geofencesList) {
         GeofencesHelper.initialize(context)
         for (geofence in geofencesList) {
-            GeofencesHelper.addGeofence(context, geofence.id, geofence.location_coords.latitude, geofence.location_coords.longitude, 200f)
+            GeofencesHelper.addGeofence(context, geofence.location, geofence.latitude.toDouble(), geofence.longitude.toDouble(), 200f)
         }
     }
     key(deviceTheme){
@@ -155,15 +156,16 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
                     .setEnabled(true)
                     .build()
             ){
-                locations.forEach { location ->
+                geofencesList.forEach { location ->
+                    val avgData = averageDataLocation.find { it.location == location.location }
                     ViewAnnotation(
                         options = viewAnnotationOptions {
-                            geometry(location.point)
+                            geometry(Point.fromLngLat(location.longitude.toDouble(), location.latitude.toDouble()))
                             allowOverlap(true)
                             allowOverlapWithPuck(true)
                         }
                     ) {
-                        MapDataObject(data = location, viewModel = mainViewModel,searchViewModel = searchViewModel)
+                        MapDataObject(data = location,avgData, viewModel = mainViewModel,searchViewModel = searchViewModel)
                     }
                 }
             }
@@ -174,24 +176,28 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
                     },
                     sheetState = sheetState
                 ) {
+                    val avgData = averageDataLocation.find { it.location == selectedPoint?.location }
+
                     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                         Column(modifier = Modifier.heightIn(600.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
                                 Icon(imageVector = Icons.Filled.Place, contentDescription = "date", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
-                                Text(text = selectedPoint?.title ?: "No data selected", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                Text(text = selectedPoint?.location ?: "No data selected", fontSize = 35.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
                                 Icon(imageVector = Icons.Outlined.Info, contentDescription = "date", tint = MaterialTheme.colorScheme.primary, modifier = Modifier
                                     .size(50.dp)
                                     .padding(end = 20.dp))
-                                Text(text = selectedPoint?.id + "ºC", fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
+                                if (avgData != null) {
+                                    Text(text = avgData.averageTemp + "ºC", fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
+                                }
                             }
                             LazyColumn(modifier = Modifier
                                 .fillMaxSize()
                                 .padding(top = 10.dp)) {
                                 item(1)
                                 {
-                                    Text(text = "Data received from ${selectedPoint?.title}:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
+                                    Text(text = "Data received from ${selectedPoint?.location}:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
                                 }
                                 items(resultsCity.size)
                                 {
@@ -224,12 +230,15 @@ fun DataCityItem(result: SearchDataResult){
 }
 
 @Composable
-fun MapDataObject(data: MapPointData, viewModel: MainViewModel, searchViewModel: SearchViewModel){
+fun MapDataObject(data: MapLocations, averageData: AverageDataLocation?, viewModel: MainViewModel, searchViewModel: SearchViewModel){
     Box(modifier = Modifier
         .size(40.dp)
-        .clickable { viewModel.setSelectedMapData(data); searchViewModel.updateSearchDataResult(data.title) }
+        .clickable { viewModel.setSelectedMapData(data); searchViewModel.updateSearchDataResult(data.location) }
         .background(MaterialTheme.colorScheme.background, RoundedCornerShape(10.dp))
         .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-        Text(text = data.id, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
+        if (averageData != null) {
+            Text(text = averageData.averageTemp, fontSize = 15.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
+        }
+
     }
 }
