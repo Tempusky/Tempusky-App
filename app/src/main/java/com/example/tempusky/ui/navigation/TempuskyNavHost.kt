@@ -26,7 +26,7 @@ import com.example.tempusky.ui.screens.signup.SignupScreen
 fun TempuskyNavHost(context: MainActivity, navController: NavController, mainViewModel:  MainViewModel, searchViewModel: SearchViewModel) {
     NavHost(startDestination = NavigationRoutes.LOGIN, navController = navController as NavHostController) {
         composable(NavigationRoutes.LOGIN){
-            LoginScreen(navController = navController, mainViewModel = mainViewModel)
+            LoginScreen(context = context, navController = navController, mainViewModel = mainViewModel)
         }
         composable(NavigationRoutes.FORGOT_PASSWORD){
             ForgotPasswordScreen(navController = navController)

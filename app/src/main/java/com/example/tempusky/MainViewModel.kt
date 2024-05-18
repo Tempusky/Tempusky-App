@@ -44,19 +44,21 @@ class MainViewModel : ViewModel() {
             .addOnSuccessListener { data ->
                 for (document in data) {
                     val data = document.data
+                    if (data["location_cords"] != null && data["location"] != null){
                     val location = data["location"].toString()
-                    val latitude = (data["location_cords"] as GeoPoint).latitude.toString()
-                    val longitude = (data["location_cords"] as GeoPoint).longitude.toString()
-                    if(!savedLocation.contains(location)){
-                        savedLocation.add(location)
-                        locationsOnData.add(
-                            MapLocations(
-                                location,
-                                latitude,
-                                longitude
+                        val latitude = (data["location_cords"] as GeoPoint).latitude.toString()
+                        val longitude = (data["location_cords"] as GeoPoint).longitude.toString()
+                        if(!savedLocation.contains(location)){
+                            savedLocation.add(location)
+                            locationsOnData.add(
+                                MapLocations(
+                                    location,
+                                    latitude,
+                                    longitude
+                                )
                             )
-                        )
-                        saveAverageDataFromLocation(location)
+                            saveAverageDataFromLocation(location)
+                        }
                     }
                 }
                 _geoFences.value = locationsOnData
