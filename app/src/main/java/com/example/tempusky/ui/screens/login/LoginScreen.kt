@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -139,7 +140,11 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                 .weight(1f)
                 .fillMaxSize()
                 .align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center) {
-                Text(text = "TEMPUSKY", fontSize = 40.sp, fontWeight = FontWeight.Black)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(painter = painterResource(id = R.drawable.logo), contentDescription = "Tempusky Logo")
+                    Spacer(modifier = Modifier.fillMaxSize(0.1f))
+                    Text(text = "TEMPUSKY", fontSize = 40.sp, fontWeight = FontWeight.Black)
+                }
             }
 
             Column(modifier = Modifier
@@ -220,6 +225,7 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                     }
                 )
             }
+            Spacer(modifier = Modifier.fillMaxSize(0.05f))
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                 Button(
                     modifier = Modifier.fillMaxWidth(0.8f),
@@ -285,6 +291,16 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                     ) {
                         Text(text = "LOGIN", fontSize = 20.sp)
                     }
+                }
+                OutlinedButton(
+                    onClick = { navController.navigate(NavigationRoutes.FORGOT_PASSWORD) },
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground,
+                        containerColor = Color.Transparent),
+                ) {
+                    Text(text = "Forgot password?", fontSize = 15.sp, fontWeight = FontWeight.Normal, modifier = Modifier.padding(start = 10.dp))
                 }
             }
         }

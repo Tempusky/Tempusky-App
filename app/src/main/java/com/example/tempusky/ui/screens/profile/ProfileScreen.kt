@@ -1,6 +1,5 @@
 package com.example.tempusky.ui.screens.profile
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -48,7 +47,7 @@ import com.google.firebase.ktx.Firebase
 fun ProfileScreen(navController: NavController) {
     val db = Firebase.firestore
     val auth = Firebase.auth
-    var username by remember { mutableStateOf("") }
+    val username = auth.currentUser?.displayName ?: "Display Name not set"
     var contributions by remember { mutableStateOf(listOf<SearchDataResult>())}
 
     LaunchedEffect(Unit) {
@@ -70,16 +69,6 @@ fun ProfileScreen(navController: NavController) {
                 }
                 tempList.sortByDescending { it.date }
                 contributions = tempList
-            }
-
-        db.collection("users").document("${auth.currentUser?.uid}").get()
-            .addOnSuccessListener { document ->
-                if (document != null) {
-                    Log.d("TAG", "DocumentSnapshot data: ${document.data}")
-                    username = document.data?.get("username").toString()
-                } else {
-                    Log.d("TAG", "No such document")
-                }
             }
     }
 

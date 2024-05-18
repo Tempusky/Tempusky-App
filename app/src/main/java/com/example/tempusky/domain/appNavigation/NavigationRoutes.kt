@@ -6,4 +6,5 @@ object NavigationRoutes {
     const val SEARCH = "search"
     const val HOME = "home"
     const val SETTINGS = "settings"
+    const val FORGOT_PASSWORD = "forgot_password"
 }

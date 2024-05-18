@@ -13,6 +13,7 @@ import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import com.example.tempusky.ui.screens.home.HomeScreen
+import com.example.tempusky.ui.screens.login.ForgotPasswordScreen
 import com.example.tempusky.ui.screens.login.LoginScreen
 import com.example.tempusky.ui.screens.profile.ProfileScreen
 import com.example.tempusky.ui.screens.search.SearchScreen
@@ -26,6 +27,9 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
     NavHost(startDestination = NavigationRoutes.LOGIN, navController = navController as NavHostController) {
         composable(NavigationRoutes.LOGIN){
             LoginScreen(context = context, navController = navController, mainViewModel = mainViewModel)
+        }
+        composable(NavigationRoutes.FORGOT_PASSWORD){
+            ForgotPasswordScreen(navController = navController)
         }
         composable(NavigationRoutes.HOME,
             enterTransition = {
