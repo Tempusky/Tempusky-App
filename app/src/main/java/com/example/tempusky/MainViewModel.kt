@@ -4,7 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.tempusky.core.helpers.GeofencesHelper
+import com.example.tempusky.data.AverageDataLocation
 import com.example.tempusky.data.GeofenceData
+import com.example.tempusky.data.MapLocations
 import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.domain.map.MapPointData
 import com.google.firebase.auth.ktx.auth
@@ -29,29 +31,79 @@ class MainViewModel : ViewModel() {
     private var _showBottomSheet = MutableLiveData(false)
     val showBottomSheet : LiveData<Boolean> = _showBottomSheet
 
-    private var _selectedMapData: MutableLiveData<MapPointData> = MutableLiveData()
-    val selectedMapData: LiveData<MapPointData> = _selectedMapData
+    private var _selectedMapData: MutableLiveData<MapLocations> = MutableLiveData()
+    val selectedMapData: LiveData<MapLocations> = _selectedMapData
 
-    private var _geoFences = MutableLiveData<List<GeofenceData>>()
-    val geoFences : LiveData<List<GeofenceData>> = _geoFences
+    private var _geoFences = MutableLiveData<List<MapLocations>>()
+    val geoFences : LiveData<List<MapLocations>> = _geoFences
+
+    private var _averageData = MutableLiveData<List<AverageDataLocation>>()
+    val averageData : LiveData<List<AverageDataLocation>> = _averageData
+
     fun getGeofencesCloud(context : MainActivity){
-        db.collection("geofences").get()
-            .addOnSuccessListener { result ->
-                val tempList = mutableListOf<GeofenceData>()
-                for (document in result) {
+        val locationsOnData = mutableListOf<MapLocations>()
+        val savedLocation = mutableListOf<String>()
+        db.collection("environment_sensors_data").get()
+            .addOnSuccessListener { data ->
+                for (document in data) {
                     val data = document.data
-                    val mapData = GeofenceData(
-                        data["geofence_id"].toString(),
-                        data["location"].toString(),
-                        data["location_cords"] as GeoPoint,
-                        data["radius"].toString().toFloat()
-                    )
-                    tempList.add(mapData)
+                    val location = data["location"].toString()
+                    val latitude = (data["location_cords"] as GeoPoint).latitude.toString()
+                    val longitude = (data["location_cords"] as GeoPoint).longitude.toString()
+                    if(!savedLocation.contains(location)){
+                        savedLocation.add(location)
+                        locationsOnData.add(
+                            MapLocations(
+                                location,
+                                latitude,
+                                longitude
+                            )
+                        )
+                        saveAverageDataFromLocation(location)
+                    }
                 }
-                _geoFences.value = tempList
+                _geoFences.value = locationsOnData
             }
     }
-    fun setSelectedMapData(data : MapPointData){
+
+    fun saveAverageDataFromLocation(location : String){
+        var averageTemp = 0.0
+        var averagePressure = 0.0
+        var averageHumidity = 0.0
+        var count = 0
+        db.collection("environment_sensors_data").get()
+            .addOnSuccessListener { data1 ->
+                for (document in data1) {
+                    val data = document.data
+                    val location2 = data["location"].toString()
+                    if(location2 == location){
+                        val temperature = data["temperature"].toString().toDouble()
+                        val pressure = data["pressure"].toString().toDouble()
+                        val humidity = data["humidity"].toString().toDouble()
+                        averageTemp += temperature
+                        averagePressure += pressure
+                        averageHumidity += humidity
+                        count++
+                    }
+                }
+                //max 1 decimal
+                averageTemp /= count
+                averagePressure /= count
+                averageHumidity /= count
+                val tempList = _averageData.value?.toMutableList() ?: mutableListOf()
+                tempList.add(
+                    AverageDataLocation(
+                        location,
+                        String.format("%.1f", averageTemp),
+                        String.format("%.1f", averagePressure),
+                        String.format("%.1f", averageHumidity)
+                    )
+                )
+                _averageData.value = tempList
+            }
+    }
+
+    fun setSelectedMapData(data : MapLocations){
         _selectedMapData.value = data
         showBottomSheet(true)
     }
