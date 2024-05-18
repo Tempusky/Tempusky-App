@@ -3,6 +3,7 @@ package com.example.tempusky.core.broadcastReceivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.util.Log
 import com.example.tempusky.core.services.EnvironmentSensorsService
 import com.google.android.gms.location.LocationAvailability
@@ -14,16 +15,19 @@ class LocationUpdatesReceiver: BroadcastReceiver() {
         Log.d(TAG, "onReceive() context:$context, intent:$intent")
 
         if (intent.action == ACTION_PROCESS_UPDATES) {
-            var latitude = 0.0
-            var longitude = 0.0
-            LocationResult.extractResult(intent).let { locationResult ->
-                val locations = locationResult?.locations?.map { location ->
-                    latitude = location.latitude
-                    longitude = location.longitude
-                }
-                if (locations != null) {
-                    if (locations.isNotEmpty()) {
-                        Log.d(TAG, "Location Data: $latitude, $longitude")
+            //Treat the case if is button, else its the location result
+            val location = intent.getParcelableExtra<Location>("location")
+            location?.let {
+                val latitude = it.latitude
+                val longitude = it.longitude
+                Log.d(TAG, "Location Data: $latitude, $longitude")
+                startEnvironmentSensorsService(context, latitude, longitude)
+            } ?: run {
+                LocationResult.extractResult(intent)?.let { locationResult ->
+                    locationResult.locations?.firstOrNull()?.let { loc ->
+                        val latitude = loc.latitude
+                        val longitude = loc.longitude
+                        Log.d(TAG, "Location Data from LocationResult: $latitude, $longitude")
                         startEnvironmentSensorsService(context, latitude, longitude)
                     }
                 }
