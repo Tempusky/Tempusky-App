@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -61,7 +62,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,7 +124,11 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     .fillMaxSize()
                     .align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center
             ) {
-                Text(text = "TEMPUSKY", fontSize = 35.sp, fontWeight = FontWeight.Black)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(painter = painterResource(id = R.drawable.logo), contentDescription = "Tempusky Logo")
+                    Spacer(modifier = Modifier.fillMaxSize(0.1f))
+                    Text(text = "TEMPUSKY", fontSize = 40.sp, fontWeight = FontWeight.Black)
+                }
             }
 
             Column(
@@ -333,25 +338,32 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         Button(
                             onClick = {
                                 auth.createUserWithEmailAndPassword(email, password)
-                                    .addOnCompleteListener { task ->
-                                        if (task.isSuccessful) {
-                                            // Sign up success, create user document in db and navigate to home screen
-                                            val db = Firebase.firestore
-                                            db.collection("users")
-                                                .document("${auth.currentUser?.uid}")
-                                                .set(
-                                                    hashMapOf(
-                                                        "username" to userName
-                                                    )
-                                                )
-                                            MainActivity.locationPermissionLauncher.launch(
-                                                arrayOf(
-                                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                                )
-                                            )
-                                            navController.navigate(NavigationRoutes.HOME)
-                                            mainViewModel.setBottomBarVisible(true)
+                                    .addOnCompleteListener { registerTask ->
+                                        if (registerTask.isSuccessful) {
+                                            // Sign up success, save user username and navigate to home screen
+                                            val user = auth.currentUser
+
+                                            val profileUpdates = userProfileChangeRequest {
+                                                displayName = userName
+                                            }
+
+                                            user!!.updateProfile(profileUpdates)
+                                                .addOnCompleteListener { updateTask ->
+                                                    if (updateTask.isSuccessful) {
+                                                        MainActivity.locationPermissionLauncher.launch(
+                                                            arrayOf(
+                                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                                            )
+                                                        )
+                                                        navController.navigate(NavigationRoutes.HOME)
+                                                        mainViewModel.setBottomBarVisible(true)
+                                                        Log.d(TAG, "User profile updated.")
+                                                    } else {
+                                                        Log.d(TAG, "User profile update failed.")
+                                                        Toast.makeText(context, "User profile update failed.", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                }
                                         } else {
                                             // If sign up fails, display a message to the user.
                                             Toast.makeText(
