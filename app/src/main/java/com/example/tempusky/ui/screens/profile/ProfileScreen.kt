@@ -137,7 +137,7 @@ fun ProfileScreen(context: Context, navController: NavController) {
                                 }
                                 .addOnFailureListener { e ->
                                     Log.e("ProfileScreen", "Failed to get location", e)
-                                    Toast.makeText(context, "Failed to get location.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Failed to get location. Enable location on device.", Toast.LENGTH_SHORT).show()
                                 }
                         }
 
