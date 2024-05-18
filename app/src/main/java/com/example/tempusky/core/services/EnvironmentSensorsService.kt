@@ -209,40 +209,31 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             Log.d(TAG, "User not authenticated")
             stopSelf()
         }
-        db.collection("users").document("${auth.currentUser?.uid}").get()
-            .addOnSuccessListener { document ->
-                if (document != null) {
-                    Log.d("TAG", "DocumentSnapshot data: ${document.data}")
-                    val username = document.data?.get("username").toString()
-                    // Upload data to cloud
-                    val data = hashMapOf(
-                        "sync_cords" to GeoPoint(latitude, longitude),
-                        "temperature" to temperature,
-                        "pressure" to pressure,
-                        "humidity" to humidity,
-                        "timestamp" to System.currentTimeMillis(),
-                        "username" to username,
-                        "uid" to auth.currentUser?.uid.toString(),
-                    )
-                    db.collection("environment_sensors_data")
-                        .add(data)
-                        .addOnSuccessListener { documentReference ->
-                            Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
-                            val updatedNotification = buildNotification("Data uploaded to cloud")
-                            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                            notificationManager.notify(NOTIFICATION_ID, updatedNotification)
-                        }
-                        .addOnFailureListener { e ->
-                            Log.w(TAG, "Error adding document", e)
-                            val errorNotification = buildNotification("Error uploading data to cloud")
-                            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                            notificationManager.notify(NOTIFICATION_ID, errorNotification)
-                        }
-                } else {
-                    Log.d("TAG", "No such document")
-                }
+        val username = auth.currentUser!!.displayName ?: "Unknown user"
+        // Upload data to cloud
+        val data = hashMapOf(
+            "sync_cords" to GeoPoint(latitude, longitude),
+            "temperature" to temperature,
+            "pressure" to pressure,
+            "humidity" to humidity,
+            "timestamp" to System.currentTimeMillis(),
+            "username" to username,
+            "uid" to auth.currentUser?.uid.toString(),
+        )
+        db.collection("environment_sensors_data")
+            .add(data)
+            .addOnSuccessListener { documentReference ->
+                Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
+                val updatedNotification = buildNotification("Data uploaded to cloud")
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(NOTIFICATION_ID, updatedNotification)
             }
-
+            .addOnFailureListener { e ->
+                Log.w(TAG, "Error adding document", e)
+                val errorNotification = buildNotification("Error uploading data to cloud")
+                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.notify(NOTIFICATION_ID, errorNotification)
+            }
     }
 
     private fun buildNotification(text: String): Notification {
