@@ -108,7 +108,7 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                 }
 
             }) {
-            ProfileScreen(navController = navController)
+            ProfileScreen(context = context, navController = navController)
         }
         composable(NavigationRoutes.SETTINGS,
             enterTransition = {

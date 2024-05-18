@@ -1,5 +1,13 @@
 package com.example.tempusky.ui.screens.profile
 
+import android.Manifest
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -35,20 +43,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
+import com.example.tempusky.MainActivity
 import com.example.tempusky.R
+import com.example.tempusky.core.broadcastReceivers.LocationUpdatesReceiver
+import com.example.tempusky.core.broadcastReceivers.LocationUpdatesReceiver.Companion.ACTION_PROCESS_UPDATES
 import com.example.tempusky.core.helpers.Utils
 import com.example.tempusky.data.SearchDataResult
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(context: Context, navController: NavController) {
     val db = Firebase.firestore
     val auth = Firebase.auth
     val username = auth.currentUser?.displayName ?: "Display Name not set"
     var contributions by remember { mutableStateOf(listOf<SearchDataResult>())}
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
     LaunchedEffect(Unit) {
         db.collection("environment_sensors_data").get()
@@ -98,7 +112,36 @@ fun ProfileScreen(navController: NavController) {
                 .weight(0.5f), horizontalArrangement = Arrangement.SpaceAround) {
                 Text(text = "Last Contribution: \n${contributions.firstOrNull()?.date}", fontSize = 17.sp, fontWeight = FontWeight.Normal)
                 Button(
-                    onClick = {  },
+                    onClick = {
+                        if (ActivityCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            ActivityCompat.requestPermissions(
+                                context as MainActivity,
+                                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                                1)
+                        }else{
+                            fusedLocationClient.lastLocation
+                                .addOnSuccessListener { location: Location? ->
+                                    if (location != null) {
+                                        sendLocation(context as MainActivity, location)
+                                        Toast.makeText(context, "Sending data started", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Failed to get location.", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("ProfileScreen", "Failed to get location", e)
+                                    Toast.makeText(context, "Failed to get location.", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+
+                    },
                     shape = MaterialTheme.shapes.medium,
                     colors = ButtonDefaults.buttonColors(
                         contentColor = MaterialTheme.colorScheme.onBackground,
@@ -119,6 +162,19 @@ fun ProfileScreen(navController: NavController) {
                 }
             }
         }
+    }
+}
+
+private fun sendLocation(context: MainActivity, location: Location) {
+    Log.d("ProfileScreen", "Location: $location")
+    val intent = Intent(context, LocationUpdatesReceiver::class.java)
+    intent.action = ACTION_PROCESS_UPDATES
+    intent.putExtra("location", location)
+
+    try {
+        context.sendBroadcast(intent)
+    } catch (e: PendingIntent.CanceledException) {
+        e.printStackTrace()
     }
 }
 
