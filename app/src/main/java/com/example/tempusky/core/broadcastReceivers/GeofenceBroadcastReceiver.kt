@@ -68,16 +68,15 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                                     val mapData = SearchDataResult(
                                         document.data["username"].toString(),
                                         document.data["location"].toString(),
-                                        document.data["temperature"].toString().toDouble(),
-                                        document.data["humidity"].toString().toDouble(),
-                                        document.data["pressure"].toString().toDouble(),
+                                        document.data["temperature"]?.toString()?.toDouble(),
+                                        document.data["humidity"]?.toString()?.toDouble(),
+                                        document.data["pressure"]?.toString()?.toDouble(),
                                         document.data["timestamp"].toString()
                                     )
                                     Log.d(TAG, "Data: $mapData")
-                                    totalTemp+=mapData.temperature
-                                    totalHumidity+=mapData.humidity
-                                    totalPressure+=mapData.pressure
-                                    count++
+                                    mapData.temperature?.let { totalTemp += it; count++ }
+                                    mapData.humidity?.let { totalHumidity += it }
+                                    mapData.pressure?.let { totalPressure += it }
                                 }
                             }
                             val notificationText = "Average Temperature: ${totalTemp/count}\n"

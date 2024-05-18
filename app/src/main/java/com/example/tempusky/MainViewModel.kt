@@ -3,12 +3,9 @@ package com.example.tempusky
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.tempusky.core.helpers.GeofencesHelper
 import com.example.tempusky.data.AverageDataLocation
-import com.example.tempusky.data.GeofenceData
 import com.example.tempusky.data.MapLocations
 import com.example.tempusky.data.SettingsValues
-import com.example.tempusky.domain.map.MapPointData
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
@@ -70,26 +67,27 @@ class MainViewModel : ViewModel() {
         var averageTemp = 0.0
         var averagePressure = 0.0
         var averageHumidity = 0.0
-        var count = 0
+        var countTemp = 0
+        var countPressure = 0
+        var countHumidity = 0
         db.collection("environment_sensors_data").get()
             .addOnSuccessListener { data1 ->
                 for (document in data1) {
                     val data = document.data
                     val location2 = data["location"].toString()
                     if(location2 == location){
-                        val temperature = data["temperature"].toString().toDouble()
-                        val pressure = data["pressure"].toString().toDouble()
-                        val humidity = data["humidity"].toString().toDouble()
-                        averageTemp += temperature
-                        averagePressure += pressure
-                        averageHumidity += humidity
-                        count++
+                        val temperature = data["temperature"]?.toString()?.toDouble()
+                        val pressure = data["pressure"]?.toString()?.toDouble()
+                        val humidity = data["humidity"]?.toString()?.toDouble()
+                        temperature?.let { averageTemp += it; countTemp++ }
+                        pressure?.let { averagePressure += it; countPressure++ }
+                        humidity?.let { averageHumidity += it; countHumidity++ }
                     }
                 }
                 //max 1 decimal
-                averageTemp /= count
-                averagePressure /= count
-                averageHumidity /= count
+                averageTemp /= countTemp
+                averagePressure /= countPressure
+                averageHumidity /= countHumidity
                 val tempList = _averageData.value?.toMutableList() ?: mutableListOf()
                 tempList.add(
                     AverageDataLocation(

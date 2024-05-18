@@ -16,12 +16,16 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.tempusky.R
 import com.example.tempusky.core.helpers.SensorsDataHelper
+import com.example.tempusky.data.SettingsDataStore
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlin.properties.Delegates
 
 class EnvironmentSensorsService : Service(), SensorEventListener {
 
@@ -36,9 +40,9 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     }
 
     private var sensorManager: SensorManager? = null
-    private var temperatureReceived = 0.0f
-    private var pressureReceived = 0.0f
-    private var humidityReceived = 0.0f
+    private var temperatureReceived: Float? = null
+    private var pressureReceived: Float? = null
+    private var humidityReceived: Float? = null
     private var temperatureUpdated: Boolean = false
     private var pressureUpdated: Boolean = false
     private var humidityUpdated: Boolean = false
@@ -47,6 +51,10 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     private var handler: Handler? = null
     private var timeoutRunnable: Runnable? = null
 
+    private var temperatureAllowed by Delegates.notNull<Boolean>()
+    private var pressureAllowed by Delegates.notNull<Boolean>()
+    private var humidityAllowed by Delegates.notNull<Boolean>()
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -54,49 +62,85 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         handler = Handler()
     }
 
+    private fun getSensorUserPermissions() {
+        runBlocking {
+            val settingsDataStore = SettingsDataStore(applicationContext)
+            temperatureAllowed = settingsDataStore.getTemperature.first()
+            pressureAllowed = settingsDataStore.getPressure.first()
+            humidityAllowed = settingsDataStore.getHumidity.first()
+        }
+    }
+
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
+    /**
+     * Get the sensors available on the device, depending on the user's permissions
+     */
     private fun getSensors(): Triple<Sensor?, Sensor?, Sensor?> {
         val temperatureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
         val pressureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PRESSURE)
         val humiditySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)
-        return Triple(temperatureSensor, pressureSensor, humiditySensor)
+        return Triple(
+            if (temperatureAllowed) temperatureSensor else null,
+            if (pressureAllowed) pressureSensor else null,
+            if (humidityAllowed) humiditySensor else null
+        )
     }
 
     private fun registerSensors(sensors: Triple<Sensor?, Sensor?, Sensor?>) {
         sensors.first?.also {
             temperatureUpdated = false
             sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+            Log.d(TAG, "Temperature sensor registered")
         }
         sensors.second?.also {
             pressureUpdated = false
             sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+            Log.d(TAG, "Pressure sensor registered")
         }
         sensors.third?.also {
             humidityUpdated = false
             sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+            Log.d(TAG, "Humidity sensor registered")
         }
 
         // Set a timeout to ensure sensors don't wait indefinitely
         timeoutRunnable = Runnable {
-            if (!(temperatureUpdated && pressureUpdated && humidityUpdated)) {
+            if (!(
+                        (temperatureUpdated || !temperatureAllowed) &&
+                        (pressureUpdated || !pressureAllowed) &&
+                        (humidityUpdated || !humidityAllowed))
+                ) {
                 Log.d(TAG, "Sensor data timeout")
-                // Handle the case where not all sensor data is updated within the timeout
+                handleTimeout()
             }
         }
         handler?.postDelayed(timeoutRunnable!!, SENSOR_TIMEOUT)
+    }
+
+    private fun handleTimeout() {
+        val latitude = intent.getDoubleExtra("latitude", 0.0)
+        val longitude = intent.getDoubleExtra("longitude", 0.0)
+        uploadDataToCloud(latitude, longitude, temperatureReceived, pressureReceived, humidityReceived)
+        stopSelf()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand()")
         val notification = buildNotification("Started Environment Sensors Service")
         startForeground(NOTIFICATION_ID, notification)
-        if(intent != null) {
+        if (intent != null) {
            Companion.intent = intent
         }
+        getSensorUserPermissions()
+        if (!temperatureAllowed && !pressureAllowed && !humidityAllowed) {
+            Log.d(TAG, "Sensors not allowed")
+            stopSelf()
+        }
         val sensors = getSensors()
+        Log.d(TAG, "Temperature: ${sensors.first}, Pressure: ${sensors.second}, Humidity: ${sensors.third}")
         registerSensors(sensors)
         return START_STICKY
     }
@@ -144,20 +188,23 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                     Log.d(TAG, "Unknown sensor type")
                 }
             }
-            if (temperatureUpdated && pressureUpdated && humidityUpdated) {
+            if (
+                (temperatureUpdated || !temperatureAllowed) &&
+                (pressureUpdated || !pressureAllowed) &&
+                (humidityUpdated || !humidityAllowed)
+                ) {
                 val latitude = intent.getDoubleExtra("latitude", 0.0)
                 val longitude = intent.getDoubleExtra("longitude", 0.0)
                 uploadDataToCloud(latitude, longitude, temperatureReceived, pressureReceived, humidityReceived)
                 temperatureUpdated = false
                 pressureUpdated = false
                 humidityUpdated = false
-                handler?.removeCallbacks(timeoutRunnable!!)
-                sensorManager?.unregisterListener(this)
+                stopSelf()
             }
         }
     }
 
-    private fun uploadDataToCloud(latitude: Double, longitude: Double, temperature: Float, pressure: Float, humidity: Float) {
+    private fun uploadDataToCloud(latitude: Double, longitude: Double, temperature: Float?, pressure: Float?, humidity: Float?) {
         if (auth.currentUser == null) {
             Log.d(TAG, "User not authenticated")
             stopSelf()
