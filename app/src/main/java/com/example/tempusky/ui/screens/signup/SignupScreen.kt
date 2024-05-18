@@ -1,8 +1,14 @@
 package com.example.tempusky.ui.screens.signup
 
 import android.Manifest
+import android.app.Activity
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -37,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -46,8 +54,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
+import com.example.tempusky.R
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -64,6 +76,41 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
     var userName by remember { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var passwordVisible1 by rememberSaveable { mutableStateOf(false) }
+    val googleSignInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                // Google Sign Up was successful, authenticate with Firebase
+                task.result?.idToken?.let { idToken ->
+                    val credential = GoogleAuthProvider.getCredential(idToken, null)
+                    auth.signInWithCredential(credential)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Log.d(TAG, "signInWithCredential:success")
+                                MainActivity.locationPermissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
+                                )
+                                mainViewModel.setBottomBarVisible(true)
+                                navController.navigate(NavigationRoutes.HOME)
+                            } else {
+                                // If sign in fails, display a message to the user.
+                                Log.w(TAG, "signInWithCredential:failure", task.exception)
+                                Toast.makeText(MainActivity.context, "Authentication failed.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                }
+            } catch (e: ApiException) {
+                // Google Sign In failed, update UI appropriately
+                Log.w(TAG, "Google sign in failed", e)
+                Toast.makeText(MainActivity.context, "Google sign in failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -247,62 +294,89 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         .fillMaxWidth(),
                 )
             }
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
+
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    onClick = {
+                        val signInIntent = GoogleSignIn.getClient(MainActivity.context, MainActivity.gso).signInIntent
+                        googleSignInLauncher.launch(signInIntent)
+                    },
+                    shape = MaterialTheme.shapes.medium,
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground,
+                        containerColor = Color.Transparent),
                 ) {
-                    OutlinedButton(
-                        onClick = { navController.navigate(NavigationRoutes.LOGIN) },
-                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            containerColor = Color.Transparent
-                        ),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Text(text = "LOGIN", fontSize = 20.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "SIGN UP WITH", fontSize = 20.sp, modifier=Modifier.padding(end = 10.dp))
+                        Image(painter = painterResource(id = R.drawable.googlecon), contentDescription = "Google Icon", modifier = Modifier.size(30.dp))
                     }
-
-                    Button(
-                        onClick = {
-                                  auth.createUserWithEmailAndPassword(email, password)
-                                      .addOnCompleteListener { task ->
-                                          if (task.isSuccessful) {
-                                              // Sign up success, create user document in db and navigate to home screen
-                                              val db = Firebase.firestore
-                                              db.collection("users").document("${auth.currentUser?.uid}")
-                                                  .set(
-                                                      hashMapOf(
-                                                          "username" to userName
-                                                      )
-                                                  )
-                                              MainActivity.locationPermissionLauncher.launch(
-                                                  arrayOf(
-                                                      Manifest.permission.ACCESS_FINE_LOCATION,
-                                                      Manifest.permission.ACCESS_COARSE_LOCATION
-                                                  )
-                                              )
-                                              navController.navigate(NavigationRoutes.HOME)
-                                              mainViewModel.setBottomBarVisible(true)
-                                          } else {
-                                              // If sign up fails, display a message to the user.
-                                              Toast.makeText(context, "Authentication failed, try again later.", Toast.LENGTH_SHORT).show()
-                                          }
-                                        }
-
-                        },
-                        enabled = isButtonEnabled,
-                        shape = MaterialTheme.shapes.medium,
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = MaterialTheme.colorScheme.onBackground,
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
+                }
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        Text(text = "SIGN UP", fontSize = 20.sp)
+                        OutlinedButton(
+                            onClick = { navController.navigate(NavigationRoutes.LOGIN) },
+                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = MaterialTheme.colorScheme.onBackground,
+                                containerColor = Color.Transparent
+                            ),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(text = "LOGIN", fontSize = 20.sp)
+                        }
+
+                        Button(
+                            onClick = {
+                                auth.createUserWithEmailAndPassword(email, password)
+                                    .addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            // Sign up success, create user document in db and navigate to home screen
+                                            val db = Firebase.firestore
+                                            db.collection("users")
+                                                .document("${auth.currentUser?.uid}")
+                                                .set(
+                                                    hashMapOf(
+                                                        "username" to userName
+                                                    )
+                                                )
+                                            MainActivity.locationPermissionLauncher.launch(
+                                                arrayOf(
+                                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                                )
+                                            )
+                                            navController.navigate(NavigationRoutes.HOME)
+                                            mainViewModel.setBottomBarVisible(true)
+                                        } else {
+                                            // If sign up fails, display a message to the user.
+                                            Toast.makeText(
+                                                context,
+                                                "Authentication failed, try again later.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+
+                            },
+                            enabled = isButtonEnabled,
+                            shape = MaterialTheme.shapes.medium,
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = MaterialTheme.colorScheme.onBackground,
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                        ) {
+                            Text(text = "SIGN UP", fontSize = 20.sp)
+                        }
                     }
                 }
             }
         }
     }
 }
+
+private const val TAG = "SignupScreen"
