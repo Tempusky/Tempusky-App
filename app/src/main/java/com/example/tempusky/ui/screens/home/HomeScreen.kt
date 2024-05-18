@@ -1,7 +1,9 @@
 package com.example.tempusky.ui.screens.home
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,19 +26,31 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
-import com.example.tempusky.domain.map.MapPointData
+import com.example.tempusky.core.helpers.GeofencesHelper
+import com.example.tempusky.data.AverageDataLocation
+import com.example.tempusky.data.MapLocations
+import com.example.tempusky.data.SearchDataResult
+import com.example.tempusky.ui.screens.search.SearchViewModel
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.MapboxExperimental
@@ -44,25 +58,13 @@ import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.DefaultSettingsProvider
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
+import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.tempusky.core.helpers.GeofencesHelper
-import com.example.tempusky.data.AverageDataLocation
-import com.example.tempusky.data.GeofenceData
-import com.example.tempusky.data.MapLocations
-import com.example.tempusky.data.SearchDataResult
-import com.example.tempusky.ui.screens.search.DataReceivedItem
-import com.example.tempusky.ui.screens.search.SearchViewModel
-import com.mapbox.maps.extension.compose.annotation.ViewAnnotation
 import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
+import kotlinx.coroutines.delay
+
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(MapboxExperimental::class, ExperimentalMaterial3Api::class)
@@ -78,7 +80,10 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     var geofencesList by remember { mutableStateOf(listOf<MapLocations>())}
     var resultsCity by remember { mutableStateOf(listOf<SearchDataResult>())}
     var averageDataLocation by remember { mutableStateOf(listOf<AverageDataLocation>())}
-
+    val backgroundLocationPermission = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_BACKGROUND_LOCATION
+    )
     mainViewModel.averageData.observe(context) {
         averageDataLocation = it
     }
@@ -108,17 +113,20 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     }
     LaunchedEffect(Unit){
         mainViewModel.getGeofencesCloud(context)
-    }
-    LaunchedEffect(geofencesList) {
+        while (!requestingPermissions){
+            mainViewModel.setLoading(backgroundLocationPermission == PackageManager.PERMISSION_GRANTED)
+            Log.d("TAG", "Requesting permissions: $requestingPermissions")
+            delay(2000)
+        }
         GeofencesHelper.initialize(context)
         for (geofence in geofencesList) {
             GeofencesHelper.addGeofence(context, geofence.location, geofence.latitude.toDouble(), geofence.longitude.toDouble(), 200f)
         }
     }
     key(deviceTheme){
-        if(requestingPermissions){
+        if(!requestingPermissions){
             Column(modifier =Modifier.fillMaxSize()){
-                Text(text ="Accept permissions to display the map.")
+                Text(text ="Accept permissions to display the map. And enable background location.")
                 Button(onClick = { MainActivity.locationPermissionLauncher.launch(
                     arrayOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,

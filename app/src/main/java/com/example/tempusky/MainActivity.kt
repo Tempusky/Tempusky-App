@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                 permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
                     // Precise location access granted.
                     mRequestingLocationUpdates = true
-                    mainViewModel.setLoading(false)
+
                     Log.i(
                         TAG,
                         "User agreed to make precise required location settings changes, updates requested, starting location updates."
@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                     // Only approximate location access granted.
                     mRequestingLocationUpdates = true
-                    mainViewModel.setLoading(false)
+
                     Log.i(
                         TAG,
                         "User agreed to make coarse required location settings changes, updates requested, starting location updates."
@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                 } permissions.getOrDefault(Manifest.permission.ACCESS_BACKGROUND_LOCATION, false) -> {
                     // Background location access granted.
                     mRequestingLocationUpdates = true
-                    mainViewModel.setLoading(false)
+                    //mainViewModel.setLoading(false)
                     Log.i(
                         TAG,
                         "User agreed to make background required location settings changes, updates requested, starting location updates."
@@ -133,6 +133,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startLocationUpdates() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED) {
+            mainViewModel.setLoading(true)
+        }
         val locationRequest = LocationRequest.create().apply {
             interval = UPDATE_INTERVAL_IN_MILLISECONDS
             fastestInterval = FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
