@@ -110,14 +110,20 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 Log.d(TAG, "signInWithCredential:success")
-                                MainActivity.locationPermissionLauncher.launch(
-                                    arrayOf(
-                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                val user = auth.currentUser!!
+                                if (user.displayName == null) {
+                                    Toast.makeText(MainActivity.context, "No user found, use another account or signup first", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(MainActivity.context, "Hello again ${user.displayName}", Toast.LENGTH_SHORT).show()
+                                    MainActivity.locationPermissionLauncher.launch(
+                                        arrayOf(
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION
+                                        )
                                     )
-                                )
-                                mainViewModel.setBottomBarVisible(true)
-                                navController.navigate(NavigationRoutes.HOME)
+                                    mainViewModel.setBottomBarVisible(true)
+                                    navController.navigate(NavigationRoutes.HOME)
+                                }
                             } else {
                                 // If sign in fails, display a message to the user.
                                 Log.w(TAG, "signInWithCredential:failure", task.exception)
@@ -264,6 +270,8 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                                 auth.signInWithEmailAndPassword(email, password)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
+                                            val user = auth.currentUser!!
+                                            Toast.makeText(MainActivity.context, "Hello again ${user.displayName}", Toast.LENGTH_SHORT).show()
                                             MainActivity.locationPermissionLauncher.launch(
                                                 arrayOf(
                                                     Manifest.permission.ACCESS_FINE_LOCATION,
