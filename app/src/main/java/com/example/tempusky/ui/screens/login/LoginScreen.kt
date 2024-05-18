@@ -2,6 +2,7 @@ package com.example.tempusky.ui.screens.login
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -54,6 +55,7 @@ import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.R
+import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
@@ -61,19 +63,45 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.first
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
+fun LoginScreen(context: MainActivity, navController: NavController, mainViewModel: MainViewModel) {
     val auth: FirebaseAuth = Firebase.auth
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(false) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var wifiOnly by remember {
+        mutableStateOf(false)
+    }
+    var isConnectedToWifi by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(Unit) {
+        val settingsDataStore = SettingsDataStore(context)
+        wifiOnly = settingsDataStore.getNetwork.first() == "Wi-Fi"
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        isConnectedToWifi = networkInfo != null && networkInfo.isConnected && networkInfo.type == android.net.ConnectivityManager.TYPE_WIFI
+        if (wifiOnly && !isConnectedToWifi) {
+            Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
+        }else{
+            auth.currentUser?.let {
+                mainViewModel.setBottomBarVisible(true)
+                navController.navigate(NavigationRoutes.HOME)
+            }
+        }
+    }
     val googleSignInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
+                if (wifiOnly && !isConnectedToWifi) {
+                    Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
+                    return@rememberLauncherForActivityResult
+                }
                 // Google Sign In was successful, authenticate with Firebase
                 task.result?.idToken?.let { idToken ->
                     val credential = GoogleAuthProvider.getCredential(idToken, null)
@@ -103,13 +131,6 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
             }
         }
 
-    }
-
-    LaunchedEffect(Unit){
-        auth.currentUser?.let {
-            mainViewModel.setBottomBarVisible(true)
-            navController.navigate(NavigationRoutes.HOME)
-        }
     }
     
     Box(modifier = Modifier.fillMaxSize()){
@@ -231,26 +252,30 @@ fun LoginScreen(navController: NavController, mainViewModel: MainViewModel) {
 
                     Button(
                         onClick = {
-                            auth.signInWithEmailAndPassword(email, password)
-                                .addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        MainActivity.locationPermissionLauncher.launch(
-                                            arrayOf(
-                                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            if (wifiOnly && !isConnectedToWifi) {
+                                Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
+                            }else{
+                                auth.signInWithEmailAndPassword(email, password)
+                                    .addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            MainActivity.locationPermissionLauncher.launch(
+                                                arrayOf(
+                                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                                )
                                             )
-                                        )
-                                        mainViewModel.setBottomBarVisible(true)
-                                        navController.navigate(NavigationRoutes.HOME)
-                                    } else {
-                                        // If sign in fails, display a message to the user.
-                                        Toast.makeText(
-                                            MainActivity.context,
-                                            "Authentication failed.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                            mainViewModel.setBottomBarVisible(true)
+                                            navController.navigate(NavigationRoutes.HOME)
+                                        } else {
+                                            // If sign in fails, display a message to the user.
+                                            Toast.makeText(
+                                                MainActivity.context,
+                                                "Authentication failed.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }
-                                }
+                            }
                         },
                         enabled = isButtonEnabled,
                         shape = MaterialTheme.shapes.medium,

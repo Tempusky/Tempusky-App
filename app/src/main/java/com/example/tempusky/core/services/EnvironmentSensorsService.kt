@@ -1,5 +1,6 @@
 package com.example.tempusky.core.services
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,6 +11,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.net.ConnectivityManager
 import android.os.Handler
 import android.os.IBinder
 import android.util.Log
@@ -55,10 +57,14 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     private var pressureAllowed by Delegates.notNull<Boolean>()
     private var humidityAllowed by Delegates.notNull<Boolean>()
 
+    private var wifiOnly by Delegates.notNull<Boolean>()
+    private var isConnectedToWifi: Boolean = false
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         sensorManager = this.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        isConnectedToWifi = isConnectedToWifi(applicationContext)
         handler = Handler()
     }
 
@@ -68,6 +74,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             temperatureAllowed = settingsDataStore.getTemperature.first()
             pressureAllowed = settingsDataStore.getPressure.first()
             humidityAllowed = settingsDataStore.getHumidity.first()
+            wifiOnly = settingsDataStore.getNetwork.first() == "Wi-Fi"
         }
     }
 
@@ -87,6 +94,12 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             if (pressureAllowed) pressureSensor else null,
             if (humidityAllowed) humiditySensor else null
         )
+    }
+
+    private fun isConnectedToWifi(context: Context) : Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected && networkInfo.type == ConnectivityManager.TYPE_WIFI
     }
 
     private fun registerSensors(sensors: Triple<Sensor?, Sensor?, Sensor?>) {
@@ -137,6 +150,10 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         getSensorUserPermissions()
         if (!temperatureAllowed && !pressureAllowed && !humidityAllowed) {
             Log.d(TAG, "Sensors not allowed")
+            stopSelf()
+        }
+        if(wifiOnly && !isConnectedToWifi) {
+            Log.d(TAG, "Not connected to Wi-Fi")
             stopSelf()
         }
         val sensors = getSensors()

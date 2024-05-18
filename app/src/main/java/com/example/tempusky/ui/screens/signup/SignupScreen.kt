@@ -2,6 +2,8 @@ package com.example.tempusky.ui.screens.signup
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
+import android.net.ConnectivityManager
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -35,6 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +58,7 @@ import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.R
+import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
@@ -63,6 +67,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.first
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +81,24 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
     var userName by remember { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var passwordVisible1 by rememberSaveable { mutableStateOf(false) }
+    var wifiOnly by remember {
+        mutableStateOf(false)
+    }
+    var isConnectedToWifi by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(Unit) {
+        val settingsDataStore = SettingsDataStore(context)
+        wifiOnly = settingsDataStore.getNetwork.first() == "Wi-Fi"
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        isConnectedToWifi = networkInfo != null && networkInfo.isConnected && networkInfo.type == ConnectivityManager.TYPE_WIFI
+    }
     val googleSignInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        if (wifiOnly && !isConnectedToWifi) {
+            Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
@@ -332,35 +354,39 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
 
                         Button(
                             onClick = {
-                                auth.createUserWithEmailAndPassword(email, password)
-                                    .addOnCompleteListener { task ->
-                                        if (task.isSuccessful) {
-                                            // Sign up success, create user document in db and navigate to home screen
-                                            val db = Firebase.firestore
-                                            db.collection("users")
-                                                .document("${auth.currentUser?.uid}")
-                                                .set(
-                                                    hashMapOf(
-                                                        "username" to userName
+                                if (wifiOnly && !isConnectedToWifi) {
+                                    Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
+                                }else{
+                                    auth.createUserWithEmailAndPassword(email, password)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                // Sign up success, create user document in db and navigate to home screen
+                                                val db = Firebase.firestore
+                                                db.collection("users")
+                                                    .document("${auth.currentUser?.uid}")
+                                                    .set(
+                                                        hashMapOf(
+                                                            "username" to userName
+                                                        )
+                                                    )
+                                                MainActivity.locationPermissionLauncher.launch(
+                                                    arrayOf(
+                                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                                        Manifest.permission.ACCESS_COARSE_LOCATION
                                                     )
                                                 )
-                                            MainActivity.locationPermissionLauncher.launch(
-                                                arrayOf(
-                                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                                )
-                                            )
-                                            navController.navigate(NavigationRoutes.HOME)
-                                            mainViewModel.setBottomBarVisible(true)
-                                        } else {
-                                            // If sign up fails, display a message to the user.
-                                            Toast.makeText(
-                                                context,
-                                                "Authentication failed, try again later.",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                                navController.navigate(NavigationRoutes.HOME)
+                                                mainViewModel.setBottomBarVisible(true)
+                                            } else {
+                                                // If sign up fails, display a message to the user.
+                                                Toast.makeText(
+                                                    context,
+                                                    "Authentication failed, try again later.",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
                                         }
-                                    }
+                                }
 
                             },
                             enabled = isButtonEnabled,
