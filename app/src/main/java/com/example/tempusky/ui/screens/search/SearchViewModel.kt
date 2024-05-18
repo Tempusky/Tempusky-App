@@ -42,9 +42,9 @@ class SearchViewModel : ViewModel() {
                         val tempData = SearchDataResult(
                             document.data["username"].toString(),
                             document.data["location"].toString(),
-                            document.data["temperature"].toString().toDouble(),
-                            document.data["humidity"].toString().toDouble(),
-                            document.data["pressure"].toString().toDouble(),
+                            document.data["temperature"]?.toString()?.toDouble(),
+                            document.data["humidity"]?.toString()?.toDouble(),
+                            document.data["pressure"]?.toString()?.toDouble(),
                             Utils.timestampToDate(document.data["timestamp"].toString())
                         )
                         tempList.add(tempData)
