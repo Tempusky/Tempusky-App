@@ -45,7 +45,7 @@ object GeofencesHelper {
         val geofence = Geofence.Builder()
             .setRequestId(geofenceId)
             .setCircularRegion(latitude, longitude, radius)
-            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
             .build()
 
         val geofencingRequest = GeofencingRequest.Builder()
