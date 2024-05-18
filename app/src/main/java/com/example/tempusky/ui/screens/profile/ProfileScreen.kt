@@ -47,7 +47,7 @@ import com.google.firebase.ktx.Firebase
 fun ProfileScreen(navController: NavController) {
     val db = Firebase.firestore
     val auth = Firebase.auth
-    val username = auth.currentUser?.displayName ?: "Not logged in user"
+    val username = auth.currentUser?.displayName ?: "Display Name not set"
     var contributions by remember { mutableStateOf(listOf<SearchDataResult>())}
 
     LaunchedEffect(Unit) {
