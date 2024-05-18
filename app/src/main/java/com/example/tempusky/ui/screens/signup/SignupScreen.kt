@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -123,7 +124,11 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     .fillMaxSize()
                     .align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center
             ) {
-                Text(text = "TEMPUSKY", fontSize = 35.sp, fontWeight = FontWeight.Black)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(painter = painterResource(id = R.drawable.logo), contentDescription = "Tempusky Logo")
+                    Spacer(modifier = Modifier.fillMaxSize(0.1f))
+                    Text(text = "TEMPUSKY", fontSize = 40.sp, fontWeight = FontWeight.Black)
+                }
             }
 
             Column(
