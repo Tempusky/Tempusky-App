@@ -19,7 +19,7 @@ class MainViewModel : ViewModel() {
     private var _bottomBarVisibility = MutableLiveData(false)
     val bottomBarVisibility : LiveData<Boolean> = _bottomBarVisibility
 
-    private var _isLoading = MutableLiveData(true)
+    private var _isLoading = MutableLiveData(false)
     val isLoading : LiveData<Boolean> = _isLoading
 
     private var _isDarkTheme = MutableLiveData("")
