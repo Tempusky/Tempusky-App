@@ -110,14 +110,24 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 Log.d(TAG, "signInWithCredential:success")
-                                MainActivity.locationPermissionLauncher.launch(
-                                    arrayOf(
-                                        Manifest.permission.ACCESS_FINE_LOCATION,
-                                        Manifest.permission.ACCESS_COARSE_LOCATION
-                                    )
-                                )
-                                mainViewModel.setBottomBarVisible(true)
-                                navController.navigate(NavigationRoutes.HOME)
+
+                                val user = auth.currentUser!!
+                                if (user.displayName == null) {
+                                    val profileUpdates = userProfileChangeRequest {
+                                        displayName = user.email!!.substringBefore('@')
+                                    }
+                                    user.updateProfile(profileUpdates).addOnSuccessListener {
+                                        Toast.makeText(context, "Welcome ${user.displayName}", Toast.LENGTH_SHORT).show()
+                                        MainActivity.locationPermissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
+                                        )
+                                        mainViewModel.setBottomBarVisible(true)
+                                        navController.navigate(NavigationRoutes.HOME)
+                                    }
+                                }
                             } else {
                                 // If sign in fails, display a message to the user.
                                 Log.w(TAG, "signInWithCredential:failure", task.exception)
@@ -375,6 +385,7 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                                                 user!!.updateProfile(profileUpdates)
                                                     .addOnCompleteListener { updateTask ->
                                                         if (updateTask.isSuccessful) {
+                                                            Toast.makeText(context, "Welcome ${user.displayName}", Toast.LENGTH_SHORT).show()
                                                             MainActivity.locationPermissionLauncher.launch(
                                                                 arrayOf(
                                                                     Manifest.permission.ACCESS_FINE_LOCATION,
