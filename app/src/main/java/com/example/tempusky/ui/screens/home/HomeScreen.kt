@@ -3,6 +3,7 @@ package com.example.tempusky.ui.screens.home
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
@@ -42,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +56,7 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
+import com.example.tempusky.core.broadcastReceivers.LocationProviderChangeReceiver
 import com.example.tempusky.core.helpers.GeofencesHelper
 import com.example.tempusky.data.AverageDataLocation
 import com.example.tempusky.data.MapLocations
@@ -89,13 +92,12 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     var resultsCity by remember { mutableStateOf(listOf<SearchDataResult>())}
     var averageDataLocation by remember { mutableStateOf(listOf<AverageDataLocation>())}
     var isLocationEnabled by remember { mutableStateOf(false) }
-
     val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
     val requestLocationServices = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
+            Log.d("TAG", "Location permission granted")
             isLocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         }
     }
@@ -124,9 +126,16 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     mainViewModel.appTheme.observe(context) {
         deviceTheme = it
     }
-
+    val locationProviderChangeReceiver = rememberUpdatedState(
+        LocationProviderChangeReceiver {
+            isLocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        }
+    )
     DisposableEffect(Unit){
+        val intentFilter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
+        context.registerReceiver(locationProviderChangeReceiver.value, intentFilter)
         onDispose {
+            Log.d("TAG", "Disposing")
             mainViewModel.showBottomSheet(false)
         }
     }
