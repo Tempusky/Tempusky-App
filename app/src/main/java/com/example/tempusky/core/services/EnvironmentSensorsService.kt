@@ -55,6 +55,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     private var temperatureAllowed by Delegates.notNull<Boolean>()
     private var pressureAllowed by Delegates.notNull<Boolean>()
     private var humidityAllowed by Delegates.notNull<Boolean>()
+    private lateinit var settingsDataStore : SettingsDataStore
 
     private var wifiOnly by Delegates.notNull<Boolean>()
     private var isConnectedToWifi: Boolean = false
@@ -69,7 +70,6 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
 
     private fun getSensorUserPermissions() {
         runBlocking {
-            val settingsDataStore = SettingsDataStore(applicationContext)
             temperatureAllowed = settingsDataStore.getTemperature.first()
             pressureAllowed = settingsDataStore.getPressure.first()
             humidityAllowed = settingsDataStore.getHumidity.first()
@@ -88,11 +88,33 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         val temperatureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
         val pressureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PRESSURE)
         val humiditySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)
+        disableSensorsIfNotFound(temperatureSensor, pressureSensor, humiditySensor)
         return Triple(
             if (temperatureAllowed) temperatureSensor else null,
             if (pressureAllowed) pressureSensor else null,
             if (humidityAllowed) humiditySensor else null
         )
+    }
+
+    private fun disableSensorsIfNotFound(
+        temperatureSensor: Sensor?,
+        pressureSensor: Sensor?,
+        humiditySensor: Sensor?
+    ) {
+        runBlocking {
+            if (temperatureSensor == null) {
+                settingsDataStore.setTemperatureEnabled(false)
+                temperatureAllowed = false
+            }
+            if (pressureSensor == null) {
+                settingsDataStore.setPressureEnabled(false)
+                pressureAllowed = false
+            }
+            if (humiditySensor == null) {
+                settingsDataStore.setHumidityEnabled(false)
+                humidityAllowed = false
+            }
+        }
     }
 
     private fun isConnectedToWifi(context: Context) : Boolean {
@@ -142,6 +164,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         Log.d(TAG, "onStartCommand()")
         val notification = buildNotification("Started Environment Sensors Service")
         startForeground(NOTIFICATION_ID, notification)
+        settingsDataStore = SettingsDataStore(applicationContext)
         if (intent != null) {
            Companion.intent = intent
         }
@@ -183,6 +206,8 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                         temperatureReceived = temperatureCelsius
                         SensorsDataHelper.updateTemperatureData(temperatureCelsius)
                         temperatureUpdated = true
+                        Log.d(TAG, "Received temperature: $temperatureCelsius")
+                        sensorManager?.unregisterListener(this, it.sensor)
                     } else {
                         Log.d(TAG, "Received invalid temperature: $temperatureCelsius")
                     }
@@ -192,12 +217,16 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                     pressureReceived = pressure
                     SensorsDataHelper.updatePressureData(pressure)
                     pressureUpdated = true
+                    Log.d(TAG, "Received pressure: $pressure")
+                    sensorManager?.unregisterListener(this, it.sensor)
                 }
                 Sensor.TYPE_RELATIVE_HUMIDITY -> {
                     val humidity = it.values[0]
                     humidityReceived = humidity
                     SensorsDataHelper.updateHumidityData(humidity)
                     humidityUpdated = true
+                    Log.d(TAG, "Received humidity: $humidity")
+                    sensorManager?.unregisterListener(this, it.sensor)
                 }
                 else -> {
                     Log.d(TAG, "Unknown sensor type")
