@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -35,8 +36,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -91,58 +92,74 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
     LaunchedEffect(Unit) {
         val settingsDataStore = SettingsDataStore(context)
         wifiOnly = settingsDataStore.getNetwork.first() == "Wi-Fi"
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
-        isConnectedToWifi = networkInfo != null && networkInfo.isConnected && networkInfo.type == ConnectivityManager.TYPE_WIFI
+        isConnectedToWifi =
+            networkInfo != null && networkInfo.isConnected && networkInfo.type == ConnectivityManager.TYPE_WIFI
     }
-    val googleSignInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-        if (wifiOnly && !isConnectedToWifi) {
-            Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
-            return@rememberLauncherForActivityResult
-        }
-        if (result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                // Google Sign Up was successful, authenticate with Firebase
-                task.result?.idToken?.let { idToken ->
-                    val credential = GoogleAuthProvider.getCredential(idToken, null)
-                    auth.signInWithCredential(credential)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Log.d(TAG, "signInWithCredential:success")
-
-                                val user = auth.currentUser!!
-                                if (user.displayName == null) {
-                                    val profileUpdates = userProfileChangeRequest {
-                                        displayName = user.email!!.substringBefore('@')
-                                    }
-                                    user.updateProfile(profileUpdates).addOnSuccessListener {
-                                        Toast.makeText(context, "Welcome ${user.displayName}", Toast.LENGTH_SHORT).show()
-                                        MainActivity.locationPermissionLauncher.launch(
-                                            arrayOf(
-                                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                                Manifest.permission.ACCESS_COARSE_LOCATION
-                                            )
-                                        )
-                                        mainViewModel.setBottomBarVisible(true)
-                                        navController.navigate(NavigationRoutes.HOME)
-                                    }
-                                }
-                            } else {
-                                // If sign in fails, display a message to the user.
-                                Log.w(TAG, "signInWithCredential:failure", task.exception)
-                                Toast.makeText(MainActivity.context, "Authentication failed.", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                }
-            } catch (e: ApiException) {
-                // Google Sign In failed, update UI appropriately
-                Log.w(TAG, "Google sign in failed", e)
-                Toast.makeText(MainActivity.context, "Google sign in failed", Toast.LENGTH_SHORT).show()
+    val googleSignInLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (wifiOnly && !isConnectedToWifi) {
+                Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT)
+                    .show()
+                return@rememberLauncherForActivityResult
             }
-        }
+            if (result.resultCode == Activity.RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    // Google Sign Up was successful, authenticate with Firebase
+                    task.result?.idToken?.let { idToken ->
+                        val credential = GoogleAuthProvider.getCredential(idToken, null)
+                        auth.signInWithCredential(credential)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    Log.d(TAG, "signInWithCredential:success")
 
-    }
+                                    val user = auth.currentUser!!
+                                    if (user.displayName == null) {
+                                        val profileUpdates = userProfileChangeRequest {
+                                            displayName = user.email!!.substringBefore('@')
+                                        }
+                                        user.updateProfile(profileUpdates).addOnSuccessListener {
+                                            Toast.makeText(
+                                                context,
+                                                "Welcome ${user.displayName}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            MainActivity.locationPermissionLauncher.launch(
+                                                arrayOf(
+                                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                                )
+                                            )
+                                            mainViewModel.setBottomBarVisible(true)
+                                            navController.navigate(NavigationRoutes.HOME)
+                                        }
+                                    }
+                                } else {
+                                    // If sign in fails, display a message to the user.
+                                    Log.w(TAG, "signInWithCredential:failure", task.exception)
+                                    Toast.makeText(
+                                        MainActivity.context,
+                                        "Authentication failed.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                    }
+                } catch (e: ApiException) {
+                    // Google Sign In failed, update UI appropriately
+                    Log.w(TAG, "Google sign in failed", e)
+                    Toast.makeText(
+                        MainActivity.context,
+                        "Google sign in failed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+        }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -157,7 +174,10 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     .align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painter = painterResource(id = R.drawable.logo), contentDescription = "Tempusky Logo")
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Tempusky Logo"
+                    )
                     Spacer(modifier = Modifier.fillMaxSize(0.1f))
                     Text(text = "TEMPUSKY", fontSize = 40.sp, fontWeight = FontWeight.Black)
                 }
@@ -177,15 +197,20 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     fontWeight = FontWeight.Bold
                 )
                 OutlinedTextField(
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        selectionColors = LocalTextSelectionColors.current,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
                         focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedPlaceholderColor = Color.LightGray,
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedPlaceholderColor = Color.LightGray
                     ),
                     value = email,
                     keyboardOptions = KeyboardOptions.Default.copy(
@@ -200,7 +225,8 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     },
                     onValueChange = {
                         email = it
-                        isButtonEnabled = email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
+                        isButtonEnabled =
+                            email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
                     },
                     label = { Text("Email address") },
                     placeholder = { Text(text = "Enter your e-mail") },
@@ -209,15 +235,20 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         .fillMaxWidth(),
                 )
                 OutlinedTextField(
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        selectionColors = LocalTextSelectionColors.current,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
                         focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedPlaceholderColor = Color.LightGray,
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedPlaceholderColor = Color.LightGray
                     ),
                     value = userName,
                     keyboardOptions = KeyboardOptions.Default.copy(
@@ -232,7 +263,8 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     },
                     onValueChange = {
                         userName = it
-                        isButtonEnabled = email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
+                        isButtonEnabled =
+                            email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
                     },
                     label = { Text("Username") },
                     placeholder = { Text(text = "Enter your Username") },
@@ -241,15 +273,20 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         .fillMaxWidth(),
                 )
                 OutlinedTextField(
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        selectionColors = LocalTextSelectionColors.current,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
                         focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedPlaceholderColor = Color.LightGray,
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedPlaceholderColor = Color.LightGray
                     ),
                     visualTransformation = if (passwordVisible1) VisualTransformation.None else PasswordVisualTransformation(),
                     value = password,
@@ -265,7 +302,8 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                     },
                     onValueChange = {
                         password = it
-                        isButtonEnabled = email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
+                        isButtonEnabled =
+                            email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
                     },
                     label = { Text(text = "Password") },
                     placeholder = { Text(text = "Enter your password") },
@@ -280,21 +318,26 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         // Please provide localized description for accessibility services
                         val description = if (passwordVisible1) "Hide password" else "Show password"
 
-                        IconButton(onClick = {passwordVisible1 = !passwordVisible1}){
-                            Icon(imageVector  = image, description)
+                        IconButton(onClick = { passwordVisible1 = !passwordVisible1 }) {
+                            Icon(imageVector = image, description)
                         }
                     },
                 )
                 OutlinedTextField(
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        selectionColors = LocalTextSelectionColors.current,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
                         focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedPlaceholderColor = Color.LightGray,
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedPlaceholderColor = Color.LightGray
                     ),
                     value = confirmPassword,
                     keyboardOptions = KeyboardOptions.Default.copy(
@@ -316,13 +359,14 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         // Please provide localized description for accessibility services
                         val description = if (passwordVisible) "Hide password" else "Show password"
 
-                        IconButton(onClick = {passwordVisible = !passwordVisible}){
-                            Icon(imageVector  = image, description)
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(imageVector = image, description)
                         }
                     },
                     onValueChange = {
                         confirmPassword = it
-                        isButtonEnabled = email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
+                        isButtonEnabled =
+                            email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()
                     },
                     label = { Text(text = "Confirm Password") },
                     placeholder = { Text("Confirm your password") },
@@ -332,22 +376,37 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                 )
             }
 
-            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Button(
                     modifier = Modifier.fillMaxWidth(0.8f),
                     onClick = {
-                        val signInIntent = GoogleSignIn.getClient(MainActivity.context, MainActivity.gso).signInIntent
+                        val signInIntent = GoogleSignIn.getClient(
+                            MainActivity.context,
+                            MainActivity.gso
+                        ).signInIntent
                         googleSignInLauncher.launch(signInIntent)
                     },
                     shape = MaterialTheme.shapes.medium,
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     colors = ButtonDefaults.buttonColors(
                         contentColor = MaterialTheme.colorScheme.onBackground,
-                        containerColor = Color.Transparent),
+                        containerColor = Color.Transparent
+                    ),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "SIGN UP WITH", fontSize = 20.sp, modifier=Modifier.padding(end = 10.dp))
-                        Image(painter = painterResource(id = R.drawable.googlecon), contentDescription = "Google Icon", modifier = Modifier.size(30.dp))
+                        Text(
+                            text = "SIGN UP WITH",
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(end = 10.dp)
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.googlecon),
+                            contentDescription = "Google Icon",
+                            modifier = Modifier.size(30.dp)
+                        )
                     }
                 }
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
@@ -370,8 +429,12 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                         Button(
                             onClick = {
                                 if (wifiOnly && !isConnectedToWifi) {
-                                    Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
-                                }else {
+                                    Toast.makeText(
+                                        context,
+                                        "Please connect to Wi-Fi to login",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
                                     auth.createUserWithEmailAndPassword(email, password)
                                         .addOnCompleteListener { registerTask ->
                                             if (registerTask.isSuccessful) {
@@ -385,7 +448,11 @@ fun SignupScreen(navController: NavController, mainViewModel: MainViewModel) {
                                                 user!!.updateProfile(profileUpdates)
                                                     .addOnCompleteListener { updateTask ->
                                                         if (updateTask.isSuccessful) {
-                                                            Toast.makeText(context, "Welcome ${user.displayName}", Toast.LENGTH_SHORT).show()
+                                                            Toast.makeText(
+                                                                context,
+                                                                "Welcome ${user.displayName}",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
                                                             MainActivity.locationPermissionLauncher.launch(
                                                                 arrayOf(
                                                                     Manifest.permission.ACCESS_FINE_LOCATION,

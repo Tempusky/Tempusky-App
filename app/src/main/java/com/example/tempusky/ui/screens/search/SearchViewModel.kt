@@ -10,11 +10,11 @@ import com.google.firebase.ktx.Firebase
 
 class SearchViewModel : ViewModel() {
 
-    private val _searchDatResult : MutableLiveData<List<SearchDataResult>> = MutableLiveData()
+    private val _searchDatResult: MutableLiveData<List<SearchDataResult>> = MutableLiveData()
     val searchDataResult = _searchDatResult
     val db = Firebase.firestore
 
-    fun setSearchDataResult(data: List<SearchDataResult>){
+    fun setSearchDataResult(data: List<SearchDataResult>) {
         _searchDatResult.value = data
     }
 
@@ -22,7 +22,7 @@ class SearchViewModel : ViewModel() {
         if (userInput == null) {
             return
         }
-        val dataList : List<SearchDataResult> = if (userInput.isBlank()) {
+        val dataList: List<SearchDataResult> = if (userInput.isBlank()) {
             getDataMatchingUserInput("")
         } else {
             getDataMatchingUserInput(userInput)
@@ -39,9 +39,9 @@ class SearchViewModel : ViewModel() {
                 val tempList = mutableListOf<SearchDataResult>()
                 for (document in result) {
                     if (document.data["location"].toString().startsWith(userInput, true)) {
-                        if(document.data["temperature"] == null || document.data["humidity"] == null || document.data["pressure"] == null){
+                        if (document.data["temperature"] == null || document.data["humidity"] == null || document.data["pressure"] == null) {
                             continue
-                        }else{
+                        } else {
                             val tempData = SearchDataResult(
                                 document.data["username"].toString(),
                                 document.data["location"].toString(),

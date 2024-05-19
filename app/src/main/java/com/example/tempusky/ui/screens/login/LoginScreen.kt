@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -33,8 +34,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -83,90 +84,135 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
     LaunchedEffect(Unit) {
         val settingsDataStore = SettingsDataStore(context)
         wifiOnly = settingsDataStore.getNetwork.first() == "Wi-Fi"
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
-        isConnectedToWifi = networkInfo != null && networkInfo.isConnected && networkInfo.type == android.net.ConnectivityManager.TYPE_WIFI
+        isConnectedToWifi =
+            networkInfo != null && networkInfo.isConnected && networkInfo.type == android.net.ConnectivityManager.TYPE_WIFI
         if (wifiOnly && !isConnectedToWifi) {
             Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
-        }else{
+        } else {
             auth.currentUser?.let {
                 mainViewModel.setBottomBarVisible(true)
                 navController.navigate(NavigationRoutes.HOME)
             }
         }
     }
-    val googleSignInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                if (wifiOnly && !isConnectedToWifi) {
-                    Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
-                    return@rememberLauncherForActivityResult
-                }
-                // Google Sign In was successful, authenticate with Firebase
-                task.result?.idToken?.let { idToken ->
-                    val credential = GoogleAuthProvider.getCredential(idToken, null)
-                    auth.signInWithCredential(credential)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Log.d(TAG, "signInWithCredential:success")
-                                val user = auth.currentUser!!
-                                if (user.displayName == null) {
-                                    Toast.makeText(MainActivity.context, "No user found, use another account or signup first", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    Toast.makeText(MainActivity.context, "Hello again ${user.displayName}", Toast.LENGTH_SHORT).show()
-                                    MainActivity.locationPermissionLauncher.launch(
-                                        arrayOf(
-                                            Manifest.permission.ACCESS_FINE_LOCATION,
-                                            Manifest.permission.ACCESS_COARSE_LOCATION
+    val googleSignInLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    if (wifiOnly && !isConnectedToWifi) {
+                        Toast.makeText(
+                            context,
+                            "Please connect to Wi-Fi to login",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@rememberLauncherForActivityResult
+                    }
+                    // Google Sign In was successful, authenticate with Firebase
+                    task.result?.idToken?.let { idToken ->
+                        val credential = GoogleAuthProvider.getCredential(idToken, null)
+                        auth.signInWithCredential(credential)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    Log.d(TAG, "signInWithCredential:success")
+                                    val user = auth.currentUser!!
+                                    if (user.displayName == null) {
+                                        Toast.makeText(
+                                            MainActivity.context,
+                                            "No user found, use another account or signup first",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            MainActivity.context,
+                                            "Hello again ${user.displayName}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        MainActivity.locationPermissionLauncher.launch(
+                                            arrayOf(
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.ACCESS_COARSE_LOCATION
+                                            )
                                         )
-                                    )
-                                    mainViewModel.setBottomBarVisible(true)
-                                    navController.navigate(NavigationRoutes.HOME)
+                                        mainViewModel.setBottomBarVisible(true)
+                                        navController.navigate(NavigationRoutes.HOME)
+                                    }
+                                } else {
+                                    // If sign in fails, display a message to the user.
+                                    Log.w(TAG, "signInWithCredential:failure", task.exception)
+                                    Toast.makeText(
+                                        MainActivity.context,
+                                        "Authentication failed.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
-                            } else {
-                                // If sign in fails, display a message to the user.
-                                Log.w(TAG, "signInWithCredential:failure", task.exception)
-                                Toast.makeText(MainActivity.context, "Authentication failed.", Toast.LENGTH_SHORT).show()
                             }
-                        }
+                    }
+                } catch (e: ApiException) {
+                    // Google Sign In failed, update UI appropriately
+                    Log.w(TAG, "Google sign in failed", e)
+                    Toast.makeText(
+                        MainActivity.context,
+                        "Google sign in failed",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-            } catch (e: ApiException) {
-                // Google Sign In failed, update UI appropriately
-                Log.w(TAG, "Google sign in failed", e)
-                Toast.makeText(MainActivity.context, "Google sign in failed", Toast.LENGTH_SHORT).show()
             }
+
         }
 
-    }
-    
-    Box(modifier = Modifier.fillMaxSize()){
-        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly) {
-            Box(modifier = Modifier
-                .weight(1f)
-                .fillMaxSize()
-                .align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
+                    .align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painter = painterResource(id = R.drawable.logo), contentDescription = "Tempusky Logo")
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "Tempusky Logo"
+                    )
                     Spacer(modifier = Modifier.fillMaxSize(0.1f))
                     Text(text = "TEMPUSKY", fontSize = 40.sp, fontWeight = FontWeight.Black)
                 }
             }
 
-            Column(modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(0.8f), verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "Login with your credentials:", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(0.8f),
+                verticalArrangement = Arrangement.SpaceAround,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Login with your credentials:",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 OutlinedTextField(
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        selectionColors = LocalTextSelectionColors.current,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
                         focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedPlaceholderColor = Color.LightGray,
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedPlaceholderColor = Color.LightGray
                     ),
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Next
@@ -188,15 +234,20 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        selectionColors = LocalTextSelectionColors.current,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
                         focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                        focusedPlaceholderColor = Color.LightGray,
                         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-                        focusedPlaceholderColor = Color.LightGray
                     ),
                     value = password,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -225,53 +276,81 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                         // Please provide localized description for accessibility services
                         val description = if (passwordVisible) "Hide password" else "Show password"
 
-                        IconButton(onClick = {passwordVisible = !passwordVisible}){
-                            Icon(imageVector  = image, description)
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(imageVector = image, description)
                         }
                     }
                 )
             }
             Spacer(modifier = Modifier.fillMaxSize(0.05f))
-            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Button(
                     modifier = Modifier.fillMaxWidth(0.8f),
                     onClick = {
-                        val signInIntent = GoogleSignIn.getClient(MainActivity.context, MainActivity.gso).signInIntent
+                        val signInIntent = GoogleSignIn.getClient(
+                            MainActivity.context,
+                            MainActivity.gso
+                        ).signInIntent
                         googleSignInLauncher.launch(signInIntent)
                     },
                     shape = MaterialTheme.shapes.medium,
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                     colors = ButtonDefaults.buttonColors(
                         contentColor = MaterialTheme.colorScheme.onBackground,
-                        containerColor = Color.Transparent),
+                        containerColor = Color.Transparent
+                    ),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "CONTINUE WITH", fontSize = 20.sp, modifier=Modifier.padding(end = 10.dp))
-                        Image(painter = painterResource(id = R.drawable.googlecon), contentDescription = "Google Icon", modifier = Modifier.size(30.dp))
+                        Text(
+                            text = "CONTINUE WITH",
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(end = 10.dp)
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.googlecon),
+                            contentDescription = "Google Icon",
+                            modifier = Modifier.size(30.dp)
+                        )
                     }
                 }
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceAround) {
-                    OutlinedButton(onClick = { navController.navigate(NavigationRoutes.SIGNUP) },
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    OutlinedButton(
+                        onClick = { navController.navigate(NavigationRoutes.SIGNUP) },
                         border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
                         colors = ButtonDefaults.buttonColors(
                             contentColor = MaterialTheme.colorScheme.onBackground,
-                            containerColor = Color.Transparent),
-                        shape = MaterialTheme.shapes.medium) {
+                            containerColor = Color.Transparent
+                        ),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
                         Text(text = "SIGNUP", fontSize = 20.sp)
                     }
 
                     Button(
                         onClick = {
                             if (wifiOnly && !isConnectedToWifi) {
-                                Toast.makeText(context, "Please connect to Wi-Fi to login", Toast.LENGTH_SHORT).show()
-                            }else{
+                                Toast.makeText(
+                                    context,
+                                    "Please connect to Wi-Fi to login",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
                                 auth.signInWithEmailAndPassword(email, password)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
                                             val user = auth.currentUser!!
-                                            Toast.makeText(MainActivity.context, "Hello again ${user.displayName}", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                MainActivity.context,
+                                                "Hello again ${user.displayName}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                             MainActivity.locationPermissionLauncher.launch(
                                                 arrayOf(
                                                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -295,7 +374,8 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                         shape = MaterialTheme.shapes.medium,
                         colors = ButtonDefaults.buttonColors(
                             contentColor = MaterialTheme.colorScheme.onBackground,
-                            containerColor = MaterialTheme.colorScheme.primary),
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
                     ) {
                         Text(text = "LOGIN", fontSize = 20.sp)
                     }
@@ -306,9 +386,15 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                     shape = MaterialTheme.shapes.medium,
                     colors = ButtonDefaults.buttonColors(
                         contentColor = MaterialTheme.colorScheme.onBackground,
-                        containerColor = Color.Transparent),
+                        containerColor = Color.Transparent
+                    ),
                 ) {
-                    Text(text = "Forgot password?", fontSize = 15.sp, fontWeight = FontWeight.Normal, modifier = Modifier.padding(start = 10.dp))
+                    Text(
+                        text = "Forgot password?",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(start = 10.dp)
+                    )
                 }
             }
         }

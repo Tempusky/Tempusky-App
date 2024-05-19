@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
@@ -12,7 +11,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
 
 @Composable
-fun currentRoute(navHostController: NavHostController) : String? = navHostController.currentBackStackEntryAsState().value?.destination?.route
+fun currentRoute(navHostController: NavHostController): String? =
+    navHostController.currentBackStackEntryAsState().value?.destination?.route
 
 sealed class NavigationItem(var route: String, val icon: ImageVector) {
     object Home : NavigationItem(
@@ -25,7 +25,7 @@ sealed class NavigationItem(var route: String, val icon: ImageVector) {
         Icons.Default.Person
     )
 
-    object Search: NavigationItem(
+    object Search : NavigationItem(
         NavigationRoutes.SEARCH,
         Icons.Default.Search
     )

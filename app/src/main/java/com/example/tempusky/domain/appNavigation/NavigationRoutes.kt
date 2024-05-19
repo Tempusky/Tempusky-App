@@ -1,4 +1,5 @@
 package com.example.tempusky.domain.appNavigation
+
 object NavigationRoutes {
     const val LOGIN = "login"
     const val SIGNUP = "signup"

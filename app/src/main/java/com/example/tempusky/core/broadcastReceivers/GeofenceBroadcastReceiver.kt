@@ -38,7 +38,8 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
             geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT ||
-            geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
+            geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL
+        ) {
 
             val triggeringGeofences = geofencingEvent.triggeringGeofences
             handleGeofenceTransition(context, geofenceTransition, triggeringGeofences!!)
@@ -79,24 +80,35 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                                     mapData.pressure?.let { totalPressure += it }
                                 }
                             }
-                            val notificationText = "Average Temperature: ${totalTemp/count}\n"
+                            val notificationText = "Average Temperature: ${totalTemp / count}\n"
                             showNotification(context, "You Entered $geofenceId", notificationText)
                         }
                 }
+
                 Geofence.GEOFENCE_TRANSITION_EXIT -> {
                     Log.d(TAG, "Exited geofence: $geofenceId")
-                    showNotification(context, "Geofence Exited", "You have exited the geofence: $geofenceId")
+                    showNotification(
+                        context,
+                        "Geofence Exited",
+                        "You have exited the geofence: $geofenceId"
+                    )
                 }
+
                 Geofence.GEOFENCE_TRANSITION_DWELL -> {
                     Log.d(TAG, "Dwelling in geofence: $geofenceId")
-                    showNotification(context, "Geofence Dwelling", "You are dwelling in the geofence: $geofenceId")
+                    showNotification(
+                        context,
+                        "Geofence Dwelling",
+                        "You are dwelling in the geofence: $geofenceId"
+                    )
                 }
             }
         }
     }
 
     private fun showNotification(context: Context, title: String, message: String) {
-        val notificationManager = ContextCompat.getSystemService(context, NotificationManager::class.java)
+        val notificationManager =
+            ContextCompat.getSystemService(context, NotificationManager::class.java)
         val notificationId = 1
         val channelId = "geofence_channel"
 

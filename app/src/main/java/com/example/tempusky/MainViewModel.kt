@@ -30,32 +30,46 @@ class MainViewModel : ViewModel() {
     val auth = Firebase.auth
 
     private var _bottomBarVisibility = MutableLiveData(false)
-    val bottomBarVisibility : LiveData<Boolean> = _bottomBarVisibility
+    val bottomBarVisibility: LiveData<Boolean> = _bottomBarVisibility
 
     private var _isLoading = MutableLiveData(false)
-    val isLoading : LiveData<Boolean> = _isLoading
+    val isLoading: LiveData<Boolean> = _isLoading
 
     private var _isDarkTheme = MutableLiveData("")
-    val appTheme : LiveData<String> = _isDarkTheme
+    val appTheme: LiveData<String> = _isDarkTheme
 
     private var _showBottomSheet = MutableLiveData(false)
-    val showBottomSheet : LiveData<Boolean> = _showBottomSheet
+    val showBottomSheet: LiveData<Boolean> = _showBottomSheet
 
     private var _selectedMapData: MutableLiveData<MapLocations> = MutableLiveData()
     val selectedMapData: LiveData<MapLocations> = _selectedMapData
 
     private var _geoFences = MutableLiveData<List<MapLocations>>()
-    val geoFences : LiveData<List<MapLocations>> = _geoFences
+    val geoFences: LiveData<List<MapLocations>> = _geoFences
 
     private var _averageData = MutableLiveData<List<AverageDataLocation>>()
-    val averageData : LiveData<List<AverageDataLocation>> = _averageData
+    val averageData: LiveData<List<AverageDataLocation>> = _averageData
 
     fun getStorageFile(context: Context) {
         // Check permission to read external storage
-        if (android.os.Build.VERSION.SDK_INT < 32 && (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED)) {
+        if (android.os.Build.VERSION.SDK_INT < 32 && (ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED)
+        ) {
             Log.d("MainViewModel", "Permission not granted")
             Toast.makeText(context, "Permission not granted", Toast.LENGTH_SHORT).show()
-            ActivityCompat.requestPermissions(context as MainActivity, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
+            ActivityCompat.requestPermissions(
+                context as MainActivity,
+                arrayOf(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ),
+                1
+            )
             return
         }
 
@@ -65,12 +79,19 @@ class MainViewModel : ViewModel() {
 
         if (android.os.Build.VERSION.SDK_INT < 32) {
             // Create a file in the external files directory with the .pdf extension
-            val localFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "Contributions.pdf")
+            val localFile = File(
+                context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+                "Contributions.pdf"
+            )
 
             pathReference.getFile(localFile).addOnSuccessListener {
                 Log.d("MainViewModel", "File saved on device")
                 Log.d("MainViewModel", "File path: ${localFile.absolutePath}")
-                Toast.makeText(context, "File downloaded, path: ${localFile.absolutePath}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "File downloaded, path: ${localFile.absolutePath}",
+                    Toast.LENGTH_SHORT
+                ).show()
                 openFile(context, localFile)
             }.addOnFailureListener {
                 Toast.makeText(context, "Failed to download file", Toast.LENGTH_SHORT).show()
@@ -83,7 +104,10 @@ class MainViewModel : ViewModel() {
                 put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
             }
 
-            val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            val uri = context.contentResolver.insert(
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                contentValues
+            )
 
             uri?.let { downloadUri ->
                 pathReference.getBytes(Long.MAX_VALUE).addOnSuccessListener { bytes ->
@@ -94,7 +118,11 @@ class MainViewModel : ViewModel() {
                             outputStream.close()
                             Log.d("MainViewModel", "File saved on device")
                             Log.d("MainViewModel", "File path: $downloadUri")
-                            Toast.makeText(context, "File downloaded, path: $downloadUri", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "File downloaded, path: $downloadUri",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         } ?: run {
                             Log.e("MainViewModel", "Error saving file: OutputStream is null")
                         }
@@ -126,18 +154,18 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun getGeofencesCloud(context : MainActivity){
+    fun getGeofencesCloud(context: MainActivity) {
         val locationsOnData = mutableListOf<MapLocations>()
         val savedLocation = mutableListOf<String>()
         db.collection("environment_sensors_data").get()
             .addOnSuccessListener { data ->
                 for (document in data) {
                     val data = document.data
-                    if (data["location_cords"] != null && data["location"] != null){
-                    val location = data["location"].toString()
+                    if (data["location_cords"] != null && data["location"] != null) {
+                        val location = data["location"].toString()
                         val latitude = (data["location_cords"] as GeoPoint).latitude.toString()
                         val longitude = (data["location_cords"] as GeoPoint).longitude.toString()
-                        if(!savedLocation.contains(location)){
+                        if (!savedLocation.contains(location)) {
                             savedLocation.add(location)
                             locationsOnData.add(
                                 MapLocations(
@@ -154,7 +182,7 @@ class MainViewModel : ViewModel() {
             }
     }
 
-    fun saveAverageDataFromLocation(location : String){
+    fun saveAverageDataFromLocation(location: String) {
         var averageTemp = 0.0
         var averagePressure = 0.0
         var averageHumidity = 0.0
@@ -166,7 +194,7 @@ class MainViewModel : ViewModel() {
                 for (document in data1) {
                     val data = document.data
                     val location2 = data["location"].toString()
-                    if(location2 == location){
+                    if (location2 == location) {
                         val temperature = data["temperature"]?.toString()?.toDouble()
                         val pressure = data["pressure"]?.toString()?.toDouble()
                         val humidity = data["humidity"]?.toString()?.toDouble()
@@ -192,29 +220,29 @@ class MainViewModel : ViewModel() {
             }
     }
 
-    fun setSelectedMapData(data : MapLocations){
+    fun setSelectedMapData(data: MapLocations) {
         _selectedMapData.value = data
         showBottomSheet(true)
     }
 
-    fun showBottomSheet(v : Boolean){
+    fun showBottomSheet(v: Boolean) {
         _showBottomSheet.value = v
     }
 
-    fun setLoading(v : Boolean){
+    fun setLoading(v: Boolean) {
         _isLoading.value = v
     }
 
-    fun setAppTheme(v : String){
-        if(v == SettingsValues.DEFAULT_THEME) return
+    fun setAppTheme(v: String) {
+        if (v == SettingsValues.DEFAULT_THEME) return
         _isDarkTheme.value = v
     }
 
-    fun setBottomBarVisible(v : Boolean){
+    fun setBottomBarVisible(v: Boolean) {
         _bottomBarVisibility.value = v
     }
 
-    fun signOut(){
+    fun signOut() {
         Firebase.auth.signOut()
         setBottomBarVisible(false)
     }

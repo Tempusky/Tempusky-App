@@ -15,7 +15,8 @@ class SettingsDataStore(private val context: Context) {
     companion object {
         private const val SETTINGS_DATA_STORE_NAME = "settings_data_store"
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = SETTINGS_DATA_STORE_NAME)
-//        val LANGUAGE_KEY = stringPreferencesKey("language")
+
+        //        val LANGUAGE_KEY = stringPreferencesKey("language")
         val THEME_KEY = stringPreferencesKey("theme")
         val NETWORK_KEY = stringPreferencesKey("network")
         val TEMPERATURE_KEY = booleanPreferencesKey("temperature")

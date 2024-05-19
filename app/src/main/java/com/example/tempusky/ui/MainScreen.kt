@@ -16,7 +16,11 @@ import com.example.tempusky.ui.screens.search.SearchViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel, searchViewModel: SearchViewModel) {
+fun MainScreen(
+    mainContext: MainActivity,
+    mainViewModel: MainViewModel,
+    searchViewModel: SearchViewModel
+) {
     val navController = rememberNavController()
     var bottombarVisible by remember { mutableStateOf(false) }
 
@@ -26,7 +30,7 @@ fun MainScreen(mainContext: MainActivity, mainViewModel: MainViewModel, searchVi
 
     Scaffold(
         bottomBar = {
-            if(bottombarVisible){
+            if (bottombarVisible) {
                 BottomNavBar(navController)
             }
         })

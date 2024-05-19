@@ -55,7 +55,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     private var temperatureAllowed by Delegates.notNull<Boolean>()
     private var pressureAllowed by Delegates.notNull<Boolean>()
     private var humidityAllowed by Delegates.notNull<Boolean>()
-    private lateinit var settingsDataStore : SettingsDataStore
+    private lateinit var settingsDataStore: SettingsDataStore
 
     private var wifiOnly by Delegates.notNull<Boolean>()
     private var isConnectedToWifi: Boolean = false
@@ -117,8 +117,9 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         }
     }
 
-    private fun isConnectedToWifi(context: Context) : Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private fun isConnectedToWifi(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo != null && networkInfo.isConnected && networkInfo.type == ConnectivityManager.TYPE_WIFI
     }
@@ -144,9 +145,9 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         timeoutRunnable = Runnable {
             if (!(
                         (temperatureUpdated || !temperatureAllowed) &&
-                        (pressureUpdated || !pressureAllowed) &&
-                        (humidityUpdated || !humidityAllowed))
-                ) {
+                                (pressureUpdated || !pressureAllowed) &&
+                                (humidityUpdated || !humidityAllowed))
+            ) {
                 Log.d(TAG, "Sensor data timeout")
                 handleTimeout()
             }
@@ -157,7 +158,13 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
     private fun handleTimeout() {
         val latitude = intent.getDoubleExtra("latitude", 0.0)
         val longitude = intent.getDoubleExtra("longitude", 0.0)
-        uploadDataToCloud(latitude, longitude, temperatureReceived, pressureReceived, humidityReceived)
+        uploadDataToCloud(
+            latitude,
+            longitude,
+            temperatureReceived,
+            pressureReceived,
+            humidityReceived
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -166,19 +173,22 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         startForeground(NOTIFICATION_ID, notification)
         settingsDataStore = SettingsDataStore(applicationContext)
         if (intent != null) {
-           Companion.intent = intent
+            Companion.intent = intent
         }
         getSensorUserPermissions()
         if (!temperatureAllowed && !pressureAllowed && !humidityAllowed) {
             Log.d(TAG, "Sensors not allowed")
             stopSelf()
         }
-        if(wifiOnly && !isConnectedToWifi) {
+        if (wifiOnly && !isConnectedToWifi) {
             Log.d(TAG, "Not connected to Wi-Fi")
             stopSelf()
         }
         val sensors = getSensors()
-        Log.d(TAG, "Temperature: ${sensors.first}, Pressure: ${sensors.second}, Humidity: ${sensors.third}")
+        Log.d(
+            TAG,
+            "Temperature: ${sensors.first}, Pressure: ${sensors.second}, Humidity: ${sensors.third}"
+        )
         registerSensors(sensors)
         return START_STICKY
     }
@@ -212,6 +222,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                         Log.d(TAG, "Received invalid temperature: $temperatureCelsius")
                     }
                 }
+
                 Sensor.TYPE_PRESSURE -> {
                     val pressure = it.values[0]
                     pressureReceived = pressure
@@ -220,6 +231,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                     Log.d(TAG, "Received pressure: $pressure")
                     sensorManager?.unregisterListener(this, it.sensor)
                 }
+
                 Sensor.TYPE_RELATIVE_HUMIDITY -> {
                     val humidity = it.values[0]
                     humidityReceived = humidity
@@ -228,6 +240,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                     Log.d(TAG, "Received humidity: $humidity")
                     sensorManager?.unregisterListener(this, it.sensor)
                 }
+
                 else -> {
                     Log.d(TAG, "Unknown sensor type")
                 }
@@ -236,10 +249,16 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                 (temperatureUpdated || !temperatureAllowed) &&
                 (pressureUpdated || !pressureAllowed) &&
                 (humidityUpdated || !humidityAllowed)
-                ) {
+            ) {
                 val latitude = intent.getDoubleExtra("latitude", 0.0)
                 val longitude = intent.getDoubleExtra("longitude", 0.0)
-                uploadDataToCloud(latitude, longitude, temperatureReceived, pressureReceived, humidityReceived)
+                uploadDataToCloud(
+                    latitude,
+                    longitude,
+                    temperatureReceived,
+                    pressureReceived,
+                    humidityReceived
+                )
                 temperatureUpdated = false
                 pressureUpdated = false
                 humidityUpdated = false
@@ -247,7 +266,13 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         }
     }
 
-    private fun uploadDataToCloud(latitude: Double, longitude: Double, temperature: Float?, pressure: Float?, humidity: Float?) {
+    private fun uploadDataToCloud(
+        latitude: Double,
+        longitude: Double,
+        temperature: Float?,
+        pressure: Float?,
+        humidity: Float?
+    ) {
         if (auth.currentUser == null) {
             Log.d(TAG, "User not authenticated")
             stopSelf()
@@ -268,13 +293,15 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
             .addOnSuccessListener { documentReference ->
                 Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
                 val updatedNotification = buildNotification("Data uploaded to cloud")
-                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                val notificationManager =
+                    getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(NOTIFICATION_ID, updatedNotification)
             }
             .addOnFailureListener { e ->
                 Log.w(TAG, "Error adding document", e)
                 val errorNotification = buildNotification("Error uploading data to cloud")
-                val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                val notificationManager =
+                    getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(NOTIFICATION_ID, errorNotification)
             }
             .addOnCompleteListener {

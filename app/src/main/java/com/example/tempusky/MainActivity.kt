@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -17,9 +16,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.tempusky.core.broadcastReceivers.GeofenceBroadcastReceiver
 import com.example.tempusky.core.broadcastReceivers.LocationUpdatesReceiver
-import com.example.tempusky.core.services.FirebaseNotificationService
 import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
@@ -32,12 +29,6 @@ import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
 
@@ -54,9 +45,13 @@ class MainActivity : ComponentActivity() {
         geofencingClient = LocationServices.getGeofencingClient(this)
         Companion.context = this@MainActivity
         setContent {
-            val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
+            val savedTheme =
+                dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")
-            TempuskyTheme(mainViewModel, if (savedTheme.value == SettingsValues.DEFAULT_THEME) isSystemInDarkTheme() else savedTheme.value == SettingsValues.DARK_THEME) {
+            TempuskyTheme(
+                mainViewModel,
+                if (savedTheme.value == SettingsValues.DEFAULT_THEME) isSystemInDarkTheme() else savedTheme.value == SettingsValues.DARK_THEME
+            ) {
                 MainScreen(this, mainViewModel, searchViewModel = searchViewModel)
             }
         }
@@ -98,14 +93,17 @@ class MainActivity : ComponentActivity() {
                 Log.i(TAG, "Precise location access granted.")
                 startLocationUpdates()
             }
+
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                 Log.i(TAG, "Approximate location access granted.")
                 startLocationUpdates()
             }
+
             permissions.getOrDefault(Manifest.permission.ACCESS_BACKGROUND_LOCATION, false) -> {
                 Log.i(TAG, "Background location access granted.")
                 startLocationUpdates()
             }
+
             else -> {
                 Log.i(TAG, "Location access denied.")
                 if (mRequestingLocationUpdates && checkPermissions()) {
@@ -124,7 +122,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startLocationUpdates() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             mainViewModel.setLoading(true)
         }
         val locationRequest = LocationRequest.create().apply {
@@ -142,7 +144,11 @@ class MainActivity : ComponentActivity() {
             PendingIntent.FLAG_MUTABLE
         )
 
-        if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(
+                applicationContext,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             Log.d(TAG, "Requesting location updates")
             mFusedLocationClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
@@ -159,9 +165,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkPermissions(): Boolean {
-        val permissionFineState = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        val permissionCoarseState = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-        val permissionBackground = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        val permissionFineState =
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        val permissionCoarseState =
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        val permissionBackground =
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
 
         return permissionFineState == PackageManager.PERMISSION_GRANTED ||
                 permissionCoarseState == PackageManager.PERMISSION_GRANTED ||
@@ -169,17 +178,34 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestPermissions() {
-        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
-                ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
-                ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) ||
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) ||
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                )
 
         val permissionsToRequest = mutableListOf<String>()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
@@ -192,11 +218,13 @@ class MainActivity : ComponentActivity() {
 
         } else {
             Log.i(TAG, "Requesting permission")
-            locationPermissionLauncher.launch(arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ))
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                )
+            )
         }
     }
 
@@ -208,7 +236,8 @@ class MainActivity : ComponentActivity() {
         private val TAG = MainActivity::class.java.simpleName
         private const val REQUEST_CHECK_SETTINGS = 0x1
         private const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 1200000
-        private const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2
+        private const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2
         lateinit var mainViewModel: MainViewModel
         lateinit var locationViewModel: LocationViewModel
         lateinit var mFusedLocationClient: FusedLocationProviderClient

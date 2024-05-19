@@ -23,12 +23,24 @@ import com.example.tempusky.ui.screens.signup.SignupScreen
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
-fun TempuskyNavHost(context: MainActivity, navController: NavController, mainViewModel:  MainViewModel, searchViewModel: SearchViewModel) {
-    NavHost(startDestination = NavigationRoutes.LOGIN, navController = navController as NavHostController) {
-        composable(NavigationRoutes.LOGIN){
-            LoginScreen(context = context, navController = navController, mainViewModel = mainViewModel)
+fun TempuskyNavHost(
+    context: MainActivity,
+    navController: NavController,
+    mainViewModel: MainViewModel,
+    searchViewModel: SearchViewModel
+) {
+    NavHost(
+        startDestination = NavigationRoutes.LOGIN,
+        navController = navController as NavHostController
+    ) {
+        composable(NavigationRoutes.LOGIN) {
+            LoginScreen(
+                context = context,
+                navController = navController,
+                mainViewModel = mainViewModel
+            )
         }
-        composable(NavigationRoutes.FORGOT_PASSWORD){
+        composable(NavigationRoutes.FORGOT_PASSWORD) {
             ForgotPasswordScreen(navController = navController)
         }
         composable(NavigationRoutes.HOME,
@@ -55,16 +67,17 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                     AnimatedContentTransitionScope.SlideDirection.Left,
                     animationSpec = tween(700)
                 )
-            }){
+            }) {
             HomeScreen(context, mainViewModel, searchViewModel)
         }
         composable(NavigationRoutes.PROFILE,
             enterTransition = {
-                when(initialState.destination.route){
+                when (initialState.destination.route) {
                     NavigationRoutes.SETTINGS -> slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Up,
                         animationSpec = tween(700)
                     )
+
                     else -> slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Left,
                         animationSpec = tween(700)
@@ -72,11 +85,12 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                 }
             },
             exitTransition = {
-                when(targetState.destination.route){
+                when (targetState.destination.route) {
                     NavigationRoutes.SETTINGS -> slideOutOfContainer(
                         AnimatedContentTransitionScope.SlideDirection.Down,
                         animationSpec = tween(700)
                     )
+
                     else -> slideOutOfContainer(
                         AnimatedContentTransitionScope.SlideDirection.Right,
                         animationSpec = tween(700)
@@ -84,11 +98,12 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                 }
             },
             popEnterTransition = {
-                when(initialState.destination.route){
+                when (initialState.destination.route) {
                     NavigationRoutes.SETTINGS -> slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Up,
                         animationSpec = tween(700)
                     )
+
                     else -> slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Left,
                         animationSpec = tween(700)
@@ -96,11 +111,12 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                 }
             },
             popExitTransition = {
-                when(targetState.destination.route){
+                when (targetState.destination.route) {
                     NavigationRoutes.SETTINGS -> slideOutOfContainer(
                         AnimatedContentTransitionScope.SlideDirection.Down,
                         animationSpec = tween(700)
                     )
+
                     else -> slideOutOfContainer(
                         AnimatedContentTransitionScope.SlideDirection.Right,
                         animationSpec = tween(700)
@@ -135,28 +151,30 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                     animationSpec = tween(700)
                 )
             }
-        ){
+        ) {
             SettingsScreen(context, navController, mainViewModel)
         }
-        composable(NavigationRoutes.SIGNUP){
+        composable(NavigationRoutes.SIGNUP) {
             SignupScreen(navController = navController, mainViewModel = mainViewModel)
         }
         composable(NavigationRoutes.SEARCH,
             enterTransition = {
-            when (initialState.destination.route) {
-                NavigationRoutes.HOME ->
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Left,
-                        animationSpec = tween(700)
-                    )
-                NavigationRoutes.PROFILE ->
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Right,
-                        animationSpec = tween(700)
-                    )
-                else -> null
-            }
-        },
+                when (initialState.destination.route) {
+                    NavigationRoutes.HOME ->
+                        slideIntoContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Left,
+                            animationSpec = tween(700)
+                        )
+
+                    NavigationRoutes.PROFILE ->
+                        slideIntoContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(700)
+                        )
+
+                    else -> null
+                }
+            },
             exitTransition = {
                 when (targetState.destination.route) {
                     NavigationRoutes.HOME ->
@@ -170,6 +188,7 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                             AnimatedContentTransitionScope.SlideDirection.Left,
                             animationSpec = tween(700)
                         )
+
                     else -> null
                 }
             },
@@ -194,7 +213,7 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
 
                     else -> null
                 }
-            }){
+            }) {
             SearchScreen(context, searchViewModel = searchViewModel)
         }
     }

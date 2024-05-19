@@ -36,7 +36,11 @@ import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mainViewModel: MainViewModel) {
+fun SettingsScreen(
+    mainActivity: MainActivity,
+    navController: NavController,
+    mainViewModel: MainViewModel
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dataStore = SettingsDataStore(context)
@@ -44,9 +48,12 @@ fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mai
 //    val savedLanguage = dataStore.getLanguage.collectAsState(initial = SettingsValues.DEFAULT_LANGUAGE)
     val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
     val savedNetwork = dataStore.getNetwork.collectAsState(initial = SettingsValues.DEFAULT_NETWORK)
-    val savedTemperatureEnabled = dataStore.getTemperature.collectAsState(initial = SettingsValues.DEFAULT_TEMPERATURE)
-    val savedPressureEnabled = dataStore.getPressure.collectAsState(initial = SettingsValues.DEFAULT_PRESSURE)
-    val savedHumidityEnabled = dataStore.getHumidity.collectAsState(initial = SettingsValues.DEFAULT_HUMIDITY)
+    val savedTemperatureEnabled =
+        dataStore.getTemperature.collectAsState(initial = SettingsValues.DEFAULT_TEMPERATURE)
+    val savedPressureEnabled =
+        dataStore.getPressure.collectAsState(initial = SettingsValues.DEFAULT_PRESSURE)
+    val savedHumidityEnabled =
+        dataStore.getHumidity.collectAsState(initial = SettingsValues.DEFAULT_HUMIDITY)
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -58,7 +65,11 @@ fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mai
                 .fillMaxHeight()
                 .padding(16.dp)
         ) {
-            Text("General", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 30.sp)
+            Text(
+                "General",
+                fontWeight = FontWeight.Bold,
+                fontSize = 30.sp
+            )
 //            Row (
 //                modifier = Modifier.fillMaxWidth(),
 //                verticalAlignment = Alignment.CenterVertically
@@ -76,11 +87,15 @@ fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mai
 //                )
 //            }
             Spacer(modifier = Modifier.height(16.dp))
-            Row (
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Theme", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
+                Text(
+                    "Theme",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 ThemeSelector(
                     themes = SettingsValues.THEMES,
@@ -95,11 +110,15 @@ fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mai
 
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Row (
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Network", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
+                Text(
+                    "Network",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 NetworkSelector(
                     networks = SettingsValues.NETWORKS,
@@ -112,7 +131,11 @@ fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mai
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Sensors Data To Send", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 30.sp)
+            Text(
+                "Sensors Data To Send",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 30.sp
+            )
             SensorSwitch("Temperature", savedTemperatureEnabled.value) {
                 scope.launch { dataStore.setTemperatureEnabled(it) }
             }
@@ -123,14 +146,22 @@ fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mai
                 scope.launch { dataStore.setPressureEnabled(it) }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            GetStorageFile(context = mainActivity, mainViewModel = mainViewModel, navController = navController)
+            GetStorageFile(
+                context = mainActivity,
+                mainViewModel = mainViewModel,
+                navController = navController
+            )
             SignOutButton(mainViewModel, navController)
         }
     }
 }
 
 @Composable
-fun GetStorageFile(context: MainActivity, mainViewModel: MainViewModel, navController: NavController) {
+fun GetStorageFile(
+    context: MainActivity,
+    mainViewModel: MainViewModel,
+    navController: NavController
+) {
     val scope = rememberCoroutineScope()
 
     Button(
@@ -141,7 +172,8 @@ fun GetStorageFile(context: MainActivity, mainViewModel: MainViewModel, navContr
         },
         colors = ButtonDefaults.buttonColors(
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            containerColor = MaterialTheme.colorScheme.primary),
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
@@ -164,7 +196,8 @@ fun SignOutButton(mainViewModel: MainViewModel, navController: NavController) {
         },
         colors = ButtonDefaults.buttonColors(
             contentColor = Color.White,
-            containerColor = Color.Red),
+            containerColor = Color.Red
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
@@ -213,7 +246,11 @@ fun SensorSwitch(sensorName: String, isEnabled: Boolean, onToggle: (Boolean) -> 
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("$sensorName: ", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
+        Text(
+            "$sensorName: ",
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 18.sp
+        )
         Spacer(modifier = Modifier.weight(1f))
         androidx.compose.material3.Switch(
             checked = isEnabled,

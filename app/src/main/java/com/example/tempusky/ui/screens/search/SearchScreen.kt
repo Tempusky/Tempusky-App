@@ -9,14 +9,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,7 +37,7 @@ import com.example.tempusky.data.SearchDataResult
 fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
 
     var inputData by remember { mutableStateOf("") }
-    var results by remember { mutableStateOf(listOf<SearchDataResult>())}
+    var results by remember { mutableStateOf(listOf<SearchDataResult>()) }
     searchViewModel.searchDataResult.observe(context) {
         results = it
     }
@@ -45,26 +46,35 @@ fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
         searchViewModel.updateSearchDataResult("")
     }
 
-    Box(modifier = Modifier
-        .fillMaxHeight(0.93f)
-        .fillMaxWidth()){
-        Column(modifier = Modifier
-            .fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxHeight(0.93f)
+            .fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             Text(text = "Search for data here!", fontSize = 25.sp, fontWeight = FontWeight.SemiBold)
             OutlinedTextField(
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier
                     .padding(top = 20.dp)
                     .fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    errorContainerColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    selectionColors = LocalTextSelectionColors.current,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.onBackground,
-                    cursorColor = MaterialTheme.colorScheme.primary,
-                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary,
                     focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
+                    focusedPlaceholderColor = Color.LightGray,
                     unfocusedPlaceholderColor = MaterialTheme.colorScheme.onBackground,
-                    focusedPlaceholderColor = Color.LightGray
                 ),
                 value = inputData,
                 leadingIcon = {
@@ -84,12 +94,18 @@ fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
                     imeAction = androidx.compose.ui.text.input.ImeAction.Done
                 )
             )
-            LazyColumn(modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 10.dp)) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 10.dp)
+            ) {
                 item(1)
                 {
-                    Text(text = "Data received near you:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
+                    Text(
+                        text = "Data received near you:",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Normal
+                    )
                 }
                 items(results.size)
                 {
@@ -101,16 +117,30 @@ fun SearchScreen(context: MainActivity, searchViewModel: SearchViewModel) {
 }
 
 @Composable
-fun DataReceivedItem(result: SearchDataResult){
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(10.dp)
-        .border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)){
+fun DataReceivedItem(result: SearchDataResult) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
+            .border(2.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)
+    ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Text(text = result.location, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = "Temperature: ${result.temperature}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = "Humidity: ${result.humidity}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = "Pressure: ${result.pressure}", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = "Temperature: ${result.temperature}",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "Humidity: ${result.humidity}",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "Pressure: ${result.pressure}",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
             Text(text = result.date, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
     }
