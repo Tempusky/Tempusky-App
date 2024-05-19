@@ -173,6 +173,10 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "onStart: called")
     }
 
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume: called")
+    }
     private fun checkPermissions(): Boolean {
         val permissionFineState = ActivityCompat.checkSelfPermission(
             this,

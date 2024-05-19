@@ -83,7 +83,6 @@ import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
 import kotlinx.coroutines.delay
 
-
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(MapboxExperimental::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -146,7 +145,6 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
         onDispose {
             Log.d("TAG", "Disposing")
             mainViewModel.showBottomSheet(false)
-            context.unregisterReceiver(locationProviderChangeReceiver.value)
         }
     }
     LaunchedEffect(Unit){
@@ -253,7 +251,6 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
                     sheetState = sheetState
                 ) {
                     val avgData = averageDataLocation.find { it.location == selectedPoint?.location }
-
                     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                         Column(modifier = Modifier.heightIn(600.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
@@ -274,6 +271,17 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
                                 item(1)
                                 {
                                     Text(text = "Data received from ${selectedPoint?.location}:", fontSize = 20.sp, fontWeight = FontWeight.Normal)
+                                }
+                                item {
+                                    Button(onClick = {
+                                        db.collection("requests").add(
+                                            hashMapOf(
+                                                "location" to selectedPoint?.location
+                                            )
+                                        )
+                                    }) {
+                                        Text(text = "Request data!")
+                                    }
                                 }
                                 items(resultsCity.size)
                                 {
