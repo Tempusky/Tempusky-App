@@ -1,9 +1,15 @@
 package com.example.tempusky.ui.screens.home
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,6 +50,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.core.helpers.GeofencesHelper
@@ -80,6 +88,17 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     var geofencesList by remember { mutableStateOf(listOf<MapLocations>())}
     var resultsCity by remember { mutableStateOf(listOf<SearchDataResult>())}
     var averageDataLocation by remember { mutableStateOf(listOf<AverageDataLocation>())}
+    var isLocationEnabled by remember { mutableStateOf(false) }
+
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+    val requestLocationServices = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            isLocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        }
+    }
     val backgroundLocationPermission = ContextCompat.checkSelfPermission(
         context,
         Manifest.permission.ACCESS_BACKGROUND_LOCATION
@@ -112,6 +131,7 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
         }
     }
     LaunchedEffect(Unit){
+        requestLocationServices.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         mainViewModel.getGeofencesCloud(context)
         while (!requestingPermissions){
             mainViewModel.setLoading(backgroundLocationPermission == PackageManager.PERMISSION_GRANTED)
@@ -124,20 +144,32 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
         }
     }
     key(deviceTheme){
-        if(!requestingPermissions){
-            Column(modifier =Modifier.fillMaxSize()){
-                Text(text ="Accept permissions to display the map. And enable background location.")
-                Button(onClick = { MainActivity.locationPermissionLauncher.launch(
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    )
-                ); }) {
-                    Text(text = "Accept permissions")
+        if(!requestingPermissions || !isLocationEnabled){
+            if (!isLocationEnabled) {
+                Column(modifier = Modifier.fillMaxSize()){
+                    Text(text = "Please turn on Location Services to use the app and enjoy the GeoFences and to contribute to the data.")
+                    Button(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    }) {
+                        Text("Turn On Location")
+                    }
+                }
+            }else{
+                Column(modifier =Modifier.fillMaxSize()){
+                    Text(text ="Accept permissions to display the map. And enable background location with Geofences to contribute to the data.")
+                    Button(onClick = { MainActivity.locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                        )
+                    ); }) {
+                        Text(text = "Accept permissions")
+                    }
                 }
             }
         }else{
+
             MapboxMap(
                 modifier = Modifier.fillMaxSize(),
                 mapInitOptionsFactory = { context ->
