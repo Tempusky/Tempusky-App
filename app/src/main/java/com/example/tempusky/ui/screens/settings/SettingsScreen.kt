@@ -33,8 +33,6 @@ import com.example.tempusky.MainViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
 import com.example.tempusky.domain.appNavigation.NavigationRoutes
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
 @Composable
@@ -43,7 +41,7 @@ fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mai
     val scope = rememberCoroutineScope()
     val dataStore = SettingsDataStore(context)
 
-    val savedLanguage = dataStore.getLanguage.collectAsState(initial = SettingsValues.DEFAULT_LANGUAGE)
+//    val savedLanguage = dataStore.getLanguage.collectAsState(initial = SettingsValues.DEFAULT_LANGUAGE)
     val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
     val savedNetwork = dataStore.getNetwork.collectAsState(initial = SettingsValues.DEFAULT_NETWORK)
     val savedTemperatureEnabled = dataStore.getTemperature.collectAsState(initial = SettingsValues.DEFAULT_TEMPERATURE)
@@ -61,22 +59,22 @@ fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mai
                 .padding(16.dp)
         ) {
             Text("General", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 30.sp)
-            Row (
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Language", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
-                Spacer(modifier = Modifier.weight(1f))
-                LanguageSelector(
-                    languages = SettingsValues.LANGUAGES,
-                    selectedLanguage = savedLanguage.value,
-                    onLanguageSelected = { language ->
-                        scope.launch {
-                            dataStore.setLanguage(language)
-                        }
-                    }
-                )
-            }
+//            Row (
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text("Language", fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = 18.sp)
+//                Spacer(modifier = Modifier.weight(1f))
+//                LanguageSelector(
+//                    languages = SettingsValues.LANGUAGES,
+//                    selectedLanguage = savedLanguage.value,
+//                    onLanguageSelected = { language ->
+//                        scope.launch {
+//                            dataStore.setLanguage(language)
+//                        }
+//                    }
+//                )
+//            }
             Spacer(modifier = Modifier.height(16.dp))
             Row (
                 modifier = Modifier.fillMaxWidth(),
@@ -175,37 +173,37 @@ fun SignOutButton(mainViewModel: MainViewModel, navController: NavController) {
     }
 }
 
-@Composable
-fun LanguageSelector(
-    languages: List<String>,
-    selectedLanguage: String,
-    onLanguageSelected: (String) -> Unit
-) {
-    Row(
-        modifier = Modifier.selectableGroup()
-    ) {
-        languages.forEach { language ->
-            Row(
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .selectable(
-                        selected = (language == selectedLanguage),
-                        onClick = { onLanguageSelected(language) }
-                    )
-            ) {
-                RadioButton(
-                    selected = (language == selectedLanguage),
-                    onClick = { onLanguageSelected(language) },
-                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                )
-                Text(
-                    text = language,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-            }
-        }
-    }
-}
+//@Composable
+//fun LanguageSelector(
+//    languages: List<String>,
+//    selectedLanguage: String,
+//    onLanguageSelected: (String) -> Unit
+//) {
+//    Row(
+//        modifier = Modifier.selectableGroup()
+//    ) {
+//        languages.forEach { language ->
+//            Row(
+//                modifier = Modifier
+//                    .padding(end = 8.dp)
+//                    .selectable(
+//                        selected = (language == selectedLanguage),
+//                        onClick = { onLanguageSelected(language) }
+//                    )
+//            ) {
+//                RadioButton(
+//                    selected = (language == selectedLanguage),
+//                    onClick = { onLanguageSelected(language) },
+//                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+//                )
+//                Text(
+//                    text = language,
+//                    modifier = Modifier.align(Alignment.CenterVertically)
+//                )
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun SensorSwitch(sensorName: String, isEnabled: Boolean, onToggle: (Boolean) -> Unit) {
