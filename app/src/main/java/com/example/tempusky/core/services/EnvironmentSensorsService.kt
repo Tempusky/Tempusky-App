@@ -1,6 +1,5 @@
 package com.example.tempusky.core.services
 
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -137,7 +136,6 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         val latitude = intent.getDoubleExtra("latitude", 0.0)
         val longitude = intent.getDoubleExtra("longitude", 0.0)
         uploadDataToCloud(latitude, longitude, temperatureReceived, pressureReceived, humidityReceived)
-        stopSelf()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -216,7 +214,6 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                 temperatureUpdated = false
                 pressureUpdated = false
                 humidityUpdated = false
-                stopSelf()
             }
         }
     }
@@ -250,6 +247,9 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
                 val errorNotification = buildNotification("Error uploading data to cloud")
                 val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.notify(NOTIFICATION_ID, errorNotification)
+            }
+            .addOnCompleteListener {
+                stopSelf()
             }
     }
 
