@@ -276,6 +276,7 @@ class EnvironmentSensorsService : Service(), SensorEventListener {
         if (auth.currentUser == null) {
             Log.d(TAG, "User not authenticated")
             stopSelf()
+            return
         }
         val username = auth.currentUser!!.displayName ?: "Unknown user"
         // Upload data to cloud
