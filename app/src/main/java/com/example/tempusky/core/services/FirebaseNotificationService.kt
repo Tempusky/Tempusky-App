@@ -37,7 +37,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        auth.currentUser.let {
+        auth.currentUser?.let {
             db.collection("user_tokens").document(auth.currentUser!!.uid).set(
                 hashMapOf(
                     "token" to token
