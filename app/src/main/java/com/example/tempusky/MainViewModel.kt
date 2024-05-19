@@ -70,7 +70,7 @@ class MainViewModel : ViewModel() {
             pathReference.getFile(localFile).addOnSuccessListener {
                 Log.d("MainViewModel", "File saved on device")
                 Log.d("MainViewModel", "File path: ${localFile.absolutePath}")
-                Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "File downloaded, path: ${localFile.absolutePath}", Toast.LENGTH_SHORT).show()
                 openFile(context, localFile)
             }.addOnFailureListener {
                 Toast.makeText(context, "Failed to download file", Toast.LENGTH_SHORT).show()
@@ -94,6 +94,7 @@ class MainViewModel : ViewModel() {
                             outputStream.close()
                             Log.d("MainViewModel", "File saved on device")
                             Log.d("MainViewModel", "File path: $downloadUri")
+                            Toast.makeText(context, "File downloaded, path: $downloadUri", Toast.LENGTH_SHORT).show()
                         } ?: run {
                             Log.e("MainViewModel", "Error saving file: OutputStream is null")
                         }
