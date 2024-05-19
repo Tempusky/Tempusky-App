@@ -8,8 +8,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.core.broadcastReceivers.GeofenceBroadcastReceiver
+import com.example.tempusky.domain.appNavigation.NavigationRoutes
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest

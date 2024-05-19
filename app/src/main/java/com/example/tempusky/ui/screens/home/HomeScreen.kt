@@ -1,9 +1,16 @@
 package com.example.tempusky.ui.screens.home
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,8 +52,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.navigation.NavController
 import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
+import com.example.tempusky.core.broadcastReceivers.LocationProviderChangeReceiver
 import com.example.tempusky.core.helpers.GeofencesHelper
 import com.example.tempusky.data.AverageDataLocation
 import com.example.tempusky.data.MapLocations
@@ -80,6 +91,16 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     var geofencesList by remember { mutableStateOf(listOf<MapLocations>())}
     var resultsCity by remember { mutableStateOf(listOf<SearchDataResult>())}
     var averageDataLocation by remember { mutableStateOf(listOf<AverageDataLocation>())}
+    var isLocationEnabled by remember { mutableStateOf(false) }
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    val requestLocationServices = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            Log.d("TAG", "Location permission granted")
+            isLocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        }
+    }
     val backgroundLocationPermission = ContextCompat.checkSelfPermission(
         context,
         Manifest.permission.ACCESS_BACKGROUND_LOCATION
@@ -105,13 +126,21 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     mainViewModel.appTheme.observe(context) {
         deviceTheme = it
     }
-
+    val locationProviderChangeReceiver = rememberUpdatedState(
+        LocationProviderChangeReceiver {
+            isLocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        }
+    )
     DisposableEffect(Unit){
+        val intentFilter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
+        context.registerReceiver(locationProviderChangeReceiver.value, intentFilter)
         onDispose {
+            Log.d("TAG", "Disposing")
             mainViewModel.showBottomSheet(false)
         }
     }
     LaunchedEffect(Unit){
+        requestLocationServices.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         mainViewModel.getGeofencesCloud(context)
         while (!requestingPermissions){
             mainViewModel.setLoading(backgroundLocationPermission == PackageManager.PERMISSION_GRANTED)
@@ -124,20 +153,32 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
         }
     }
     key(deviceTheme){
-        if(!requestingPermissions){
-            Column(modifier =Modifier.fillMaxSize()){
-                Text(text ="Accept permissions to display the map. And enable background location.")
-                Button(onClick = { MainActivity.locationPermissionLauncher.launch(
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    )
-                ); }) {
-                    Text(text = "Accept permissions")
+        if(!requestingPermissions || !isLocationEnabled){
+            if (!isLocationEnabled) {
+                Column(modifier = Modifier.fillMaxSize()){
+                    Text(text = "Please turn on Location Services to use the app and enjoy the GeoFences and to contribute to the data.")
+                    Button(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    }) {
+                        Text("Turn On Location")
+                    }
+                }
+            }else{
+                Column(modifier =Modifier.fillMaxSize()){
+                    Text(text ="Accept permissions to display the map. And enable background location with Geofences to contribute to the data.")
+                    Button(onClick = { MainActivity.locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                        )
+                    ); }) {
+                        Text(text = "Accept permissions")
+                    }
                 }
             }
         }else{
+
             MapboxMap(
                 modifier = Modifier.fillMaxSize(),
                 mapInitOptionsFactory = { context ->

@@ -25,21 +25,6 @@ sealed class NavigationItem(var route: String, val icon: ImageVector) {
         Icons.Default.Person
     )
 
-    object Settings : NavigationItem(
-        NavigationRoutes.SETTINGS,
-        Icons.Default.Settings
-    )
-
-    object Login: NavigationItem(
-        NavigationRoutes.LOGIN,
-        Icons.Default.Person
-    )
-
-    object Signup: NavigationItem(
-        NavigationRoutes.SIGNUP,
-        Icons.Default.Person
-    )
-
     object Search: NavigationItem(
         NavigationRoutes.SEARCH,
         Icons.Default.Search
