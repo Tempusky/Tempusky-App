@@ -1,9 +1,11 @@
 package com.example.tempusky
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -50,7 +52,8 @@ class MainViewModel : ViewModel() {
 
     fun getStorageFile(context: Context) {
         // Check permission to read external storage
-        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        if (android.os.Build.VERSION.SDK_INT < 32 && (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED)) {
+            Log.d("MainViewModel", "Permission not granted")
             Toast.makeText(context, "Permission not granted", Toast.LENGTH_SHORT).show()
             ActivityCompat.requestPermissions(context as MainActivity, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
             return
@@ -60,17 +63,52 @@ class MainViewModel : ViewModel() {
         val storageRef = storage.reference
         val pathReference = storageRef.child("/Dummy export test - Tempusky.pdf")
 
-        // Create a file in the external files directory with the .pdf extension
-        val localFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "Contributions.pdf")
+        if (android.os.Build.VERSION.SDK_INT < 32) {
+            // Create a file in the external files directory with the .pdf extension
+            val localFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "Contributions.pdf")
 
-        pathReference.getFile(localFile).addOnSuccessListener {
-            Log.d("MainViewModel", "File saved on device")
-            Log.d("MainViewModel", "File path: ${localFile.absolutePath}")
-            Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show()
-            openFile(context, localFile)
-        }.addOnFailureListener {
-            Toast.makeText(context, "Failed to download file", Toast.LENGTH_SHORT).show()
+            pathReference.getFile(localFile).addOnSuccessListener {
+                Log.d("MainViewModel", "File saved on device")
+                Log.d("MainViewModel", "File path: ${localFile.absolutePath}")
+                Toast.makeText(context, "File downloaded", Toast.LENGTH_SHORT).show()
+                openFile(context, localFile)
+            }.addOnFailureListener {
+                Toast.makeText(context, "Failed to download file", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            // For Android 13 and above
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, "Contributions.pdf")
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }
+
+            val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+            uri?.let { downloadUri ->
+                pathReference.getBytes(Long.MAX_VALUE).addOnSuccessListener { bytes ->
+                    try {
+                        context.contentResolver.openOutputStream(downloadUri)?.use { outputStream ->
+                            outputStream.write(bytes)
+                            outputStream.flush()  // Ensure all data is written to the stream
+                            outputStream.close()
+                            Log.d("MainViewModel", "File saved on device")
+                            Log.d("MainViewModel", "File path: $downloadUri")
+                        } ?: run {
+                            Log.e("MainViewModel", "Error saving file: OutputStream is null")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MainViewModel", "Error saving file", e)
+                    }
+                }.addOnFailureListener {
+                    Log.e("MainViewModel", "Failed to download file", it)
+                }
+            } ?: run {
+                Log.e("MainViewModel", "Error saving file: Uri is null")
+            }
         }
+
+
     }
 
     private fun openFile(context: Context, file: File) {
