@@ -58,10 +58,17 @@ import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.core.broadcastReceivers.LocationProviderChangeReceiver
 import com.example.tempusky.core.helpers.GeofencesHelper
+import com.example.tempusky.core.services.FirebaseNotificationService
 import com.example.tempusky.data.AverageDataLocation
 import com.example.tempusky.data.MapLocations
 import com.example.tempusky.data.SearchDataResult
 import com.example.tempusky.ui.screens.search.SearchViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.MapboxExperimental
@@ -93,6 +100,8 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     var averageDataLocation by remember { mutableStateOf(listOf<AverageDataLocation>())}
     var isLocationEnabled by remember { mutableStateOf(false) }
     val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    val auth: FirebaseAuth = Firebase.auth
+    val db: FirebaseFirestore = Firebase.firestore
     val requestLocationServices = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -137,11 +146,29 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
         onDispose {
             Log.d("TAG", "Disposing")
             mainViewModel.showBottomSheet(false)
+            context.unregisterReceiver(locationProviderChangeReceiver.value)
         }
     }
     LaunchedEffect(Unit){
         requestLocationServices.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         mainViewModel.getGeofencesCloud(context)
+        if (auth.currentUser != null) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w(FirebaseNotificationService.TAG, "Fetching FCM registration token failed", task.exception)
+                    return@addOnCompleteListener
+                }
+                val token = task.result
+                db.collection("user_tokens").document(auth.currentUser!!.uid).set(
+                    hashMapOf(
+                        "token" to token
+                    )
+                )
+                FirebaseNotificationService.token = token.toString()
+                Log.d(FirebaseNotificationService.TAG, "FCM token: $token")
+            }
+
+        }
         while (!requestingPermissions){
             mainViewModel.setLoading(backgroundLocationPermission == PackageManager.PERMISSION_GRANTED)
             Log.d("TAG", "Requesting permissions: $requestingPermissions")

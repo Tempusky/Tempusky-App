@@ -136,7 +136,7 @@ fun TempuskyNavHost(context: MainActivity, navController: NavController, mainVie
                 )
             }
         ){
-            SettingsScreen(navController, mainViewModel)
+            SettingsScreen(context, navController, mainViewModel)
         }
         composable(NavigationRoutes.SIGNUP){
             SignupScreen(navController = navController, mainViewModel = mainViewModel)
