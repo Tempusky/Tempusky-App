@@ -66,7 +66,11 @@ fun ForgotPasswordScreen(navController: NavController) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
             Text(text = "Forgot Password", fontSize = 30.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.fillMaxSize(0.1f))
             Text(text = "Enter your email:", fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -98,7 +102,8 @@ fun ForgotPasswordScreen(navController: NavController) {
                 },
                 onValueChange = {
                     email = it
-                    isConfirmEmailEnabled = email.isNotEmpty() && email.contains("@") && email.contains(".")
+                    isConfirmEmailEnabled =
+                        email.isNotEmpty() && email.contains("@") && email.contains(".")
                 },
                 label = { Text("Email address") },
                 placeholder = { Text(text = "Enter your e-mail") },
