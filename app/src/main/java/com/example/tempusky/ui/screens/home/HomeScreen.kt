@@ -179,16 +179,7 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
     }
     key(deviceTheme){
         if(!requestingPermissions || !isLocationEnabled){
-            if (!isLocationEnabled) {
-                Column(modifier = Modifier.fillMaxSize()){
-                    Text(text = "Please turn on Location Services to use the app and enjoy the GeoFences and to contribute to the data.")
-                    Button(onClick = {
-                        context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                    }) {
-                        Text("Turn On Location")
-                    }
-                }
-            }else{
+            if (!requestingPermissions) {
                 Column(modifier =Modifier.fillMaxSize()){
                     Text(text ="Accept permissions to display the map. And enable background location with Geofences to contribute to the data.")
                     Button(onClick = { MainActivity.locationPermissionLauncher.launch(
@@ -199,6 +190,15 @@ fun HomeScreen(context: MainActivity, mainViewModel: MainViewModel, searchViewMo
                         )
                     ); }) {
                         Text(text = "Accept permissions")
+                    }
+                }
+            }else if(!isLocationEnabled){
+                Column(modifier = Modifier.fillMaxSize()){
+                    Text(text = "Please turn on Location Services to use the app and enjoy the GeoFences and to contribute to the data.")
+                    Button(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    }) {
+                        Text("Turn On Location")
                     }
                 }
             }

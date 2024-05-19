@@ -41,91 +41,48 @@ import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
 
-    val mainViewModel : MainViewModel by viewModels()
-    private val searchViewModel : SearchViewModel by viewModels()
-    val locatioViewModel: LocationViewModel by viewModels()
-    private lateinit var dataStore : SettingsDataStore
+    private val mainViewModel: MainViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
+    private val locationViewModel: LocationViewModel by viewModels()
+    private lateinit var dataStore: SettingsDataStore
     private var settings = false
     private lateinit var geofencingClient: GeofencingClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         dataStore = SettingsDataStore(this)
-        locationViewModel = locatioViewModel
-        locatioViewModel.setLastUpdateTime("")
         geofencingClient = LocationServices.getGeofencingClient(this)
+        Companion.context = this@MainActivity
         setContent {
             val savedTheme = dataStore.getTheme.collectAsState(initial = SettingsValues.DEFAULT_THEME)
             Log.d(TAG, "Saved theme: ${savedTheme.value}")
-            TempuskyTheme(mainViewModel, if(savedTheme.value == SettingsValues.DEFAULT_THEME) isSystemInDarkTheme() else savedTheme.value == SettingsValues.DARK_THEME) {
+            TempuskyTheme(mainViewModel, if (savedTheme.value == SettingsValues.DEFAULT_THEME) isSystemInDarkTheme() else savedTheme.value == SettingsValues.DARK_THEME) {
                 MainScreen(this, mainViewModel, searchViewModel = searchViewModel)
             }
         }
 
+        initializeLocationComponents()
+        initializePermissionLaunchers()
+        requestPermissions()
+    }
+
+    private fun initializeLocationComponents() {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         mSettingsClient = LocationServices.getSettingsClient(this)
         mRequestingLocationUpdates = false
-        context = this
+    }
 
+    private fun initializePermissionLaunchers() {
         locationPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
-            when {
-                permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
-                    // Precise location access granted.
-                    mRequestingLocationUpdates = true
-
-                    Log.i(
-                        TAG,
-                        "User agreed to make precise required location settings changes, updates requested, starting location updates."
-                    )
-                    startLocationUpdates()
-                }
-
-                permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                    // Only approximate location access granted.
-                    mRequestingLocationUpdates = true
-
-                    Log.i(
-                        TAG,
-                        "User agreed to make coarse required location settings changes, updates requested, starting location updates."
-                    )
-                    startLocationUpdates()
-                } permissions.getOrDefault(Manifest.permission.ACCESS_BACKGROUND_LOCATION, false) -> {
-                    // Background location access granted.
-                    mRequestingLocationUpdates = true
-                    //mainViewModel.setLoading(false)
-                    Log.i(
-                        TAG,
-                        "User agreed to make background required location settings changes, updates requested, starting location updates."
-                    )
-                    startLocationUpdates()
-                }else -> {
-                    if (mRequestingLocationUpdates && checkPermissions()) {
-                        Log.d(TAG, "onStart: requesting location updates")
-                        requestPermissions()
-                        startLocationUpdates()
-                    } else if (!checkPermissions() && !settings) {
-                        Log.d(TAG, "onStart: requesting permissions")
-                        requestPermissions()
-                    }
-                    // No location access granted.
-                       Log.i(TAG, "User denied location access, updates not requested, starting location updates.")
-                }
-            }
+            handleLocationPermissionsResult(permissions)
         }
+
         notificationsPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
-            permissions.entries.forEach {
-                val permissionName = it.key
-                val isGranted = it.value
-                if (isGranted) {
-                    Log.d("Permissions", "$permissionName granted")
-                } else {
-                    Log.d("Permissions", "$permissionName denied")
-                }
-            }
+            handleNotificationPermissionsResult(permissions)
         }
 
         gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -133,18 +90,41 @@ class MainActivity : ComponentActivity() {
             .requestIdToken(getString(R.string.web_client_id))
             .requestProfile()
             .build()
+    }
 
-        requestPermissions()
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION), 56)
+    private fun handleLocationPermissionsResult(permissions: Map<String, Boolean>) {
+        when {
+            permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
+                Log.i(TAG, "Precise location access granted.")
+                startLocationUpdates()
+            }
+            permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
+                Log.i(TAG, "Approximate location access granted.")
+                startLocationUpdates()
+            }
+            permissions.getOrDefault(Manifest.permission.ACCESS_BACKGROUND_LOCATION, false) -> {
+                Log.i(TAG, "Background location access granted.")
+                startLocationUpdates()
+            }
+            else -> {
+                Log.i(TAG, "Location access denied.")
+                if (mRequestingLocationUpdates && checkPermissions()) {
+                    requestPermissions()
+                } else if (!checkPermissions()) {
+                    requestPermissions()
+                }
+            }
+        }
+    }
+
+    private fun handleNotificationPermissionsResult(permissions: Map<String, Boolean>) {
+        permissions.entries.forEach { (permissionName, isGranted) ->
+            Log.d("Permissions", "$permissionName ${if (isGranted) "granted" else "denied"}")
         }
     }
 
     private fun startLocationUpdates() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mainViewModel.setLoading(true)
         }
         val locationRequest = LocationRequest.create().apply {
@@ -152,8 +132,9 @@ class MainActivity : ComponentActivity() {
             fastestInterval = FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
-        val intent = Intent(applicationContext, LocationUpdatesReceiver::class.java)
-        intent.action = "com.google.android.gms.location.example.tempusky.action.PROCESS_UPDATES"
+        val intent = Intent(applicationContext, LocationUpdatesReceiver::class.java).apply {
+            action = "com.google.android.gms.location.example.tempusky.action.PROCESS_UPDATES"
+        }
         val pendingIntent = PendingIntent.getBroadcast(
             applicationContext,
             3,
@@ -162,14 +143,13 @@ class MainActivity : ComponentActivity() {
         )
 
         if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "startLocationUpdates: requesting location updates")
+            Log.d(TAG, "Requesting location updates")
             mFusedLocationClient.requestLocationUpdates(locationRequest, pendingIntent)
         }
     }
 
     override fun onStart() {
         super.onStart()
-
         Log.d(TAG, "onStart: called")
     }
 
@@ -177,54 +157,29 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         Log.d(TAG, "onResume: called")
     }
+
     private fun checkPermissions(): Boolean {
-        val permissionFineState = ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-        val permissionCoarseState = ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        val permissionBackground = ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        )
+        val permissionFineState = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        val permissionCoarseState = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        val permissionBackground = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
 
-
-        return ((permissionFineState == PackageManager.PERMISSION_GRANTED) || (permissionCoarseState == PackageManager.PERMISSION_GRANTED) || (permissionBackground == PackageManager.PERMISSION_GRANTED))
+        return permissionFineState == PackageManager.PERMISSION_GRANTED ||
+                permissionCoarseState == PackageManager.PERMISSION_GRANTED ||
+                permissionBackground == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestPermissions() {
-        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) || ActivityCompat.shouldShowRequestPermissionRationale(
-            this,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) || ActivityCompat.shouldShowRequestPermissionRationale(
-            this,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        )
+        val shouldProvideRationale = ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION) ||
+                ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
+                ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
 
         val permissionsToRequest = mutableListOf<String>()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        // Add other permissions if needed, e.g., location
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
@@ -234,15 +189,14 @@ class MainActivity : ComponentActivity() {
 
         if (shouldProvideRationale) {
             Log.i(TAG, "Displaying permission rationale to provide additional context.")
-           //Show snackbar
-            settings = true
+
         } else {
             Log.i(TAG, "Requesting permission")
-
             locationPermissionLauncher.launch(arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION))
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ))
         }
     }
 
@@ -253,20 +207,16 @@ class MainActivity : ComponentActivity() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         private const val REQUEST_CHECK_SETTINGS = 0x1
-        private const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 1200000  // 10000
-        private const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
-            UPDATE_INTERVAL_IN_MILLISECONDS / 2
-        private const val KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates"
-        private const val KEY_LOCATION = "location"
-        private const val KEY_LAST_UPDATED_TIME_STRING = "last-updated-time-string"
+        private const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 1200000
+        private const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2
         lateinit var mainViewModel: MainViewModel
         lateinit var locationViewModel: LocationViewModel
         lateinit var mFusedLocationClient: FusedLocationProviderClient
         lateinit var mSettingsClient: SettingsClient
-        lateinit var context : MainActivity
+        lateinit var context: MainActivity
         lateinit var locationPermissionLauncher: ActivityResultLauncher<Array<String>>
         lateinit var notificationsPermissionLauncher: ActivityResultLauncher<Array<String>>
         var mRequestingLocationUpdates: Boolean = false
-        lateinit var gso : GoogleSignInOptions
+        lateinit var gso: GoogleSignInOptions
     }
 }
