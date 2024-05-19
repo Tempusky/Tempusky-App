@@ -1,11 +1,15 @@
 package com.example.tempusky.core.services
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.tempusky.MainActivity
@@ -26,6 +30,8 @@ class FirebaseNotificationService : FirebaseMessagingService() {
         private val db: FirebaseFirestore = Firebase.firestore
         var token = ""
     }
+
+    val context = this
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
@@ -58,7 +64,7 @@ class FirebaseNotificationService : FirebaseMessagingService() {
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         // Create the notification
-        val builder = NotificationCompat.Builder(this, channelId)
+        val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle(title)
             .setContentText(message)
@@ -67,8 +73,17 @@ class FirebaseNotificationService : FirebaseMessagingService() {
             .setAutoCancel(true)
 
         // Show the notification
-        with(NotificationManagerCompat.from(this)) {
-            notify(notificationId, builder.build())
+        with(NotificationManagerCompat.from(context)) {
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.d(TAG, "Notification permission not granted, cannot show notification.")
+                return
+            } else {
+                notify(notificationId, builder.build())
+            }
         }
 
         // Create the notification channel (required for Android 8.0 and higher)
