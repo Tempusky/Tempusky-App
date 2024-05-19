@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.tempusky.MainActivity
 import com.example.tempusky.MainViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
@@ -37,7 +38,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(navController: NavController, mainViewModel: MainViewModel) {
+fun SettingsScreen(mainActivity: MainActivity, navController: NavController, mainViewModel: MainViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dataStore = SettingsDataStore(context)
@@ -124,8 +125,30 @@ fun SettingsScreen(navController: NavController, mainViewModel: MainViewModel) {
                 scope.launch { dataStore.setPressureEnabled(it) }
             }
             Spacer(modifier = Modifier.height(16.dp))
+            GetStorageFile(context = mainActivity, mainViewModel = mainViewModel, navController = navController)
             SignOutButton(mainViewModel, navController)
         }
+    }
+}
+
+@Composable
+fun GetStorageFile(context: MainActivity, mainViewModel: MainViewModel, navController: NavController) {
+    val scope = rememberCoroutineScope()
+
+    Button(
+        onClick = {
+            scope.launch {
+                mainViewModel.getStorageFile(context = context)
+            }
+        },
+        colors = ButtonDefaults.buttonColors(
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            containerColor = MaterialTheme.colorScheme.primary),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text("Download Your Contributions", fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
     }
 }
 

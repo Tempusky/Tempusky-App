@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.tempusky.core.broadcastReceivers.GeofenceBroadcastReceiver
 import com.example.tempusky.core.broadcastReceivers.LocationUpdatesReceiver
+import com.example.tempusky.core.services.FirebaseNotificationService
 import com.example.tempusky.core.viewModels.LocationViewModel
 import com.example.tempusky.data.SettingsDataStore
 import com.example.tempusky.data.SettingsValues
@@ -31,6 +32,11 @@ import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
@@ -163,17 +169,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                return@addOnCompleteListener
-            }
-            val token = task.result
-            Log.d("FCM", "FCM token: $token")
-        }
+
         Log.d(TAG, "onStart: called")
     }
 
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume: called")
+    }
     private fun checkPermissions(): Boolean {
         val permissionFineState = ActivityCompat.checkSelfPermission(
             this,

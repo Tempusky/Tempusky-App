@@ -1,26 +1,30 @@
 package com.example.tempusky.core.services
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.tempusky.MainActivity
 import com.example.tempusky.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 class FirebaseNotificationService : FirebaseMessagingService() {
 
     companion object {
-        private const val TAG = "FirebaseNotificationService"
+        const val TAG = "FirebaseNotificationService"
+        private val auth: FirebaseAuth = Firebase.auth
+        private val db: FirebaseFirestore = Firebase.firestore
+        var token = ""
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -33,8 +37,11 @@ class FirebaseNotificationService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Handle the new token
-
+        db.collection("user_tokens").document(auth.currentUser!!.uid).set(
+            hashMapOf(
+                "token" to token
+            )
+        )
     }
 
     private fun showNotification(title: String?, message: String?) {

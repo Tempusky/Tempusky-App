@@ -83,5 +83,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:20.0.0")
+    implementation("com.google.firebase:firebase-storage")
+    implementation ("com.firebaseui:firebase-ui-storage:7.2.0")
 
 }
