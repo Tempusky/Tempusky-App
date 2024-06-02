@@ -39,20 +39,15 @@ class SearchViewModel : ViewModel() {
                 val tempList = mutableListOf<SearchDataResult>()
                 for (document in result) {
                     if (document.data["location"].toString().startsWith(userInput, true)) {
-                        if (document.data["temperature"] == null || document.data["humidity"] == null || document.data["pressure"] == null) {
-                            continue
-                        } else {
-                            val tempData = SearchDataResult(
-                                document.data["username"].toString(),
-                                document.data["location"].toString(),
-                                document.data["temperature"]?.toString()?.toDouble(),
-                                document.data["humidity"]?.toString()?.toDouble(),
-                                document.data["pressure"]?.toString()?.toDouble(),
-                                Utils.timestampToDate(document.data["timestamp"].toString())
-                            )
-                            tempList.add(tempData)
-                        }
-
+                        val tempData = SearchDataResult(
+                            document.data["username"].toString(),
+                            document.data["location"].toString(),
+                            document.data["temperature"]?.toString()?.toDouble(),
+                            document.data["humidity"]?.toString()?.toDouble(),
+                            document.data["pressure"]?.toString()?.toDouble(),
+                            Utils.timestampToDate(document.data["timestamp"].toString())
+                        )
+                        tempList.add(tempData)
                     }
                 }
                 tempList.sortByDescending { it.date }
