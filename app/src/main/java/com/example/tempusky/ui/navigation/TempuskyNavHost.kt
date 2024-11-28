@@ -4,6 +4,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SheetState
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -21,13 +23,15 @@ import com.example.tempusky.ui.screens.search.SearchViewModel
 import com.example.tempusky.ui.screens.settings.SettingsScreen
 import com.example.tempusky.ui.screens.signup.SignupScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun TempuskyNavHost(
     context: MainActivity,
     navController: NavController,
     mainViewModel: MainViewModel,
-    searchViewModel: SearchViewModel
+    searchViewModel: SearchViewModel,
+    appKitModalState: SheetState
 ) {
     NavHost(
         startDestination = NavigationRoutes.LOGIN,
@@ -37,7 +41,8 @@ fun TempuskyNavHost(
             LoginScreen(
                 context = context,
                 navController = navController,
-                mainViewModel = mainViewModel
+                mainViewModel = mainViewModel,
+                appKitModalState = appKitModalState
             )
         }
         composable(NavigationRoutes.FORGOT_PASSWORD) {

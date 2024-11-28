@@ -35,12 +35,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -66,15 +68,17 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(context: MainActivity, navController: NavController, mainViewModel: MainViewModel) {
+fun LoginScreen(context: MainActivity, navController: NavController, mainViewModel: MainViewModel, appKitModalState: SheetState) {
     val auth: FirebaseAuth = Firebase.auth
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isButtonEnabled by remember { mutableStateOf(false) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
     var wifiOnly by remember {
         mutableStateOf(false)
     }
@@ -391,6 +395,22 @@ fun LoginScreen(context: MainActivity, navController: NavController, mainViewMod
                 ) {
                     Text(
                         text = "Forgot password?",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(start = 10.dp)
+                    )
+                }
+                OutlinedButton(
+                    onClick = { coroutineScope.launch { appKitModalState.show() } },
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground,
+                        containerColor = Color.Transparent
+                    ),
+                ) {
+                    Text(
+                        text = "CONNECT WALLET",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
                         modifier = Modifier.padding(start = 10.dp)
