@@ -29,6 +29,12 @@ import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.SettingsClient
+import com.reown.android.Core
+import com.reown.android.CoreClient
+import com.reown.android.relay.ConnectionType
+import com.reown.appkit.client.AppKit
+import com.reown.appkit.client.Modal
+import com.reown.appkit.presets.AppKitChainsPresets
 
 class MainActivity : ComponentActivity() {
 
@@ -56,6 +62,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        initializeAppKitSingleton()
         initializeLocationComponents()
         initializePermissionLaunchers()
         requestPermissions()
@@ -85,6 +92,51 @@ class MainActivity : ComponentActivity() {
             .requestIdToken(getString(R.string.web_client_id))
             .requestProfile()
             .build()
+    }
+
+    private fun initializeAppKitSingleton() {
+        // Initialize the AppKit singleton
+        val connectionType = ConnectionType.AUTOMATIC
+        val projectId = BuildConfig.REOWN_PROJECT_ID
+        val appMetadata = Core.Model.AppMetaData(
+            name = "Tempusky",
+            description = "A descentralized weather app",
+            url = "https://tempusky.com",
+            icons = listOf("https://tempusky.com/icon.png"),
+            redirect = "kotlin-modal-wc://request",
+        )
+
+        val errorCallback: (Core.Model.Error) -> Unit = { error ->
+            // Handle the error here, for example:
+            println("Error occurred: $error")
+        }
+
+        CoreClient.initialize(
+            application = application,
+            connectionType = connectionType,
+            projectId = projectId,
+            metaData = appMetadata,
+            onError = {
+                Log.e(TAG, "Error initializing CoreClient: $it")
+            }
+        )
+
+        AppKit.initialize(
+            init = Modal.Params.Init(CoreClient),
+            onSuccess = {
+                Log.d(TAG, "AppKit initialized successfully")
+            },
+            onError = {
+                Log.e(TAG, "Error initializing AppKit: $it")
+                // If we can't initialize AppKit, we have to disable the wallet feature
+            }
+        )
+
+        val chainsList: List<Modal.Model.Chain> = AppKitChainsPresets.ethChains.values.toList()
+
+        // Set the chains, we can define what chains we want to use, even custom ones
+        // product/appkit/src/main/kotlin/com/reown/appkit/presets/AppKitChainsPresets.kt
+        AppKit.setChains(chainsList)
     }
 
     private fun handleLocationPermissionsResult(permissions: Map<String, Boolean>) {
