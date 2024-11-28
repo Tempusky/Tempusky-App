@@ -19,6 +19,8 @@ dependencyResolutionManagement {
             credentials.password = providers.gradleProperty("MAPBOX_DOWNLOADS_TOKEN").get()
             authentication.create<BasicAuthentication>("basic")
         }
+        // JitPack repository for reown Appkit SDK
+        maven { url = uri("https://jitpack.io") }
 
     }
 }

@@ -20,6 +20,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "REOWN_PROJECT_ID", "\"${project.findProperty("REOWN_PROJECT_ID")}\"")
     }
 
     buildTypes {
@@ -40,6 +41,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -86,4 +88,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation ("com.firebaseui:firebase-ui-storage:7.2.0")
     implementation("io.coil-kt:coil-compose:2.0.0")
+    implementation(platform("com.reown:android-bom:1.0.0"))
+    implementation("com.reown:android-core:1.0.0")
+    implementation("com.reown:appkit:1.0.0")
 }
